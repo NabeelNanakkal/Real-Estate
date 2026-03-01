@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHome, FiDollarSign, FiEye, FiMail, FiTrendingUp, FiPlus, FiChevronRight } from 'react-icons/fi';
 import { propertyService } from '../../services/api';
+import { PROPERTY_STATUS } from '../../constants/statuses';
 
 const DashboardHome = () => {
   const [statsData, setStatsData] = useState(null);
@@ -115,8 +116,8 @@ const DashboardHome = () => {
                     </td>
                     <td className="py-5 px-8">
                       <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${
-                        property.status === 'active' 
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500' 
+                        property.status === PROPERTY_STATUS.ACTIVE
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500'
                           : 'bg-orange-50 text-orange-600 border-orange-100 group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500'
                       }`}>
                         {property.status}

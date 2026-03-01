@@ -76,6 +76,13 @@ export const contactService = {
   updateContactContent: (data) => api.put('/contact', data),
 };
 
+export const testimonialService = {
+  getTestimonials:    (all = false) => api.get('/testimonials', { params: all ? { all: 'true' } : {} }),
+  addTestimonial:     (data)        => api.post('/testimonials', data),
+  updateTestimonial:  (id, data)    => api.put(`/testimonials/${id}`, data),
+  deleteTestimonial:  (id)          => api.delete(`/testimonials/${id}`),
+};
+
 export const zohoService = {
   subscribe: (webhookUrl) => api.post('/auth/zoho/subscribe', { webhookUrl }),
 };

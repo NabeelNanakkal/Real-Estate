@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiMapPin, FiHome, FiDollarSign } from 'react-icons/fi';
+import { PROPERTY_TYPES } from '../../constants/propertyTypes';
+import { LISTING_TYPE } from '../../constants/statuses';
 
 const SearchBar = () => {
   const navigate = useNavigate();
   const [searchData, setSearchData] = useState({
     location: '',
     propertyType: '',
-    listingType: 'sale',
+    listingType: LISTING_TYPE.SALE,
     minPrice: '',
     maxPrice: ''
   });
@@ -30,9 +32,9 @@ const SearchBar = () => {
       {/* Tabs */}
       <div className="flex space-x-4 mb-6">
         <button
-          onClick={() => setSearchData({ ...searchData, listingType: 'sale' })}
+          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.SALE })}
           className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === 'sale'
+            searchData.listingType === LISTING_TYPE.SALE
               ? 'bg-white text-primary shadow-lg'
               : 'text-white hover:bg-white/20'
           }`}
@@ -40,9 +42,9 @@ const SearchBar = () => {
           Buy
         </button>
         <button
-          onClick={() => setSearchData({ ...searchData, listingType: 'rent' })}
+          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.RENT })}
           className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === 'rent'
+            searchData.listingType === LISTING_TYPE.RENT
               ? 'bg-white text-primary shadow-lg'
               : 'text-white hover:bg-white/20'
           }`}
@@ -50,9 +52,9 @@ const SearchBar = () => {
           Rent
         </button>
         <button
-          onClick={() => setSearchData({ ...searchData, listingType: 'commercial' })}
+          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.COMMERCIAL })}
           className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === 'commercial'
+            searchData.listingType === LISTING_TYPE.COMMERCIAL
               ? 'bg-white text-primary shadow-lg'
               : 'text-white hover:bg-white/20'
           }`}
@@ -84,11 +86,9 @@ const SearchBar = () => {
             className="w-full pl-10 pr-4 py-3 rounded-lg bg-white border-0 focus:ring-2 focus:ring-primary appearance-none"
           >
             <option value="">Property Type</option>
-            <option value="apartment">Apartment</option>
-            <option value="villa">Villa</option>
-            <option value="house">House</option>
-            <option value="office">Office</option>
-            <option value="land">Land</option>
+            {PROPERTY_TYPES.map(t => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
           </select>
         </div>
 

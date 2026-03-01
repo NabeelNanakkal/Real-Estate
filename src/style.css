@@ -182,3 +182,17 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* ── Testimonial Swiper — equal-height cards ──────────────────────────────── */
+.testimonial-swiper .swiper-wrapper {
+  align-items: stretch;
+}
+
+.testimonial-swiper .swiper-slide {
+  height: auto;
+  display: flex;
+}
+
+.testimonial-swiper .swiper-slide > div {
+  flex: 1;
+}

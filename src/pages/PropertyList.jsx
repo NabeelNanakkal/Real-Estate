@@ -6,6 +6,8 @@ import { propertyService } from '../services/api';
 import EmptyState from '../components/common/EmptyState';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { BEDROOM_OPTIONS, PROPERTY_TYPE_FILTERS } from '../constants/propertyTypes';
+import { LISTING_TYPE } from '../constants/statuses';
 
 const PropertyList = () => {
   const [searchParams] = useSearchParams();
@@ -100,10 +102,10 @@ const PropertyList = () => {
         </div>
         <div className="container-custom relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Find Your Dream {searchParams.get('type') === 'rent' ? 'Rental' : 'Home'}
+            Find Your Dream {searchParams.get('type') === LISTING_TYPE.RENT ? 'Rental' : 'Home'}
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Discover a wide range of properties {searchParams.get('type') === 'rent' ? 'for rent' : 'for sale'} in the most desirable locations.
+            Discover a wide range of properties {searchParams.get('type') === LISTING_TYPE.RENT ? 'for rent' : 'for sale'} in the most desirable locations.
           </p>
         </div>
       </div>
@@ -163,7 +165,7 @@ const PropertyList = () => {
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Bedrooms</label>
                 <div className="flex flex-wrap gap-2">
-                  {['Any', '1', '2', '3', '4+'].map((num) => (
+                  {BEDROOM_OPTIONS.map((num) => (
                     <button 
                       key={num} 
                       onClick={() => setFilters({...filters, bedrooms: num === 'Any' ? '' : num.replace('+', '')})}
@@ -183,7 +185,7 @@ const PropertyList = () => {
               <div className="mb-8">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Property Type</label>
                 <div className="space-y-2">
-                  {['House', 'Apartment', 'Condo', 'Villa'].map((type) => (
+                  {PROPERTY_TYPE_FILTERS.map((type) => (
                     <label key={type} className="flex items-center space-x-2 cursor-pointer group" onClick={() => togglePropertyType(type)}>
                       <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
                         filters.propertyType.includes(type.toLowerCase()) ? 'bg-primary border-primary' : 'border-gray-300 group-hover:border-primary'

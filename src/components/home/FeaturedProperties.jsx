@@ -60,7 +60,7 @@ const FeaturedProperties = () => {
             <Link
               key={property._id}
               to={`/property/${property._id}`}
-              className="group bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden"
+              className="group bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden flex flex-col h-full"
             >
               {/* Image */}
               <div className="relative h-56 overflow-hidden">
@@ -80,17 +80,17 @@ const FeaturedProperties = () => {
               </div>
 
               {/* Content */}
-              <div className="p-6">
+              <div className="p-6 flex-grow flex flex-col">
                 <div className="flex items-center text-gray-400 text-[10px] font-black uppercase tracking-widest mb-2">
                   <FiMapPin className="w-3 h-3 mr-1 text-primary" />
                   <span>{property.city}, {property.location.split(',').pop()}</span>
                 </div>
                 
-                <h3 className="text-lg font-black text-gray-900 mb-3 group-hover:text-primary transition-colors line-clamp-1">
+                <h3 className="text-lg font-black text-gray-900 mb-3 group-hover:text-primary transition-colors line-clamp-2">
                   {property.title}
                 </h3>
 
-                <div className="flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest pt-4 border-t border-gray-50">
+                <div className="mt-auto flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest pt-4 border-t border-gray-50">
                   <div className="flex items-center">
                     <FaBed className="w-3 h-3 mr-1.5 text-blue-500" />
                     <span>{property.bedrooms} Beds</span>

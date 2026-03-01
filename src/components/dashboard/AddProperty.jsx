@@ -8,6 +8,8 @@ import {
 import { propertyService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { AMENITIES } from '../../constants/amenities';
+import { PROPERTY_TYPES } from '../../constants/propertyTypes';
+import { LISTING_TYPE } from '../../constants/statuses';
 
 const AddProperty = () => {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ const AddProperty = () => {
     title: '',
     description: '',
     propertyType: '',
-    listingType: 'sale',
+    listingType: LISTING_TYPE.SALE,
     price: '',
     location: '',
     city: '',
@@ -150,11 +152,9 @@ const AddProperty = () => {
                 required
               >
                 <option value="">Select Type</option>
-                <option value="apartment">Apartment</option>
-                <option value="villa">Villa</option>
-                <option value="house">House</option>
-                <option value="office">Office</option>
-                <option value="land">Land</option>
+                {PROPERTY_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
               </select>
             </div>
 

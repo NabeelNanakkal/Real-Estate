@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FiHome, FiPlus, FiList, FiBarChart2, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiChevronLeft, FiChevronRight, FiMoreVertical } from 'react-icons/fi';
+import { FiHome, FiPlus, FiList, FiBarChart2, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight, FiMoreVertical } from 'react-icons/fi';
 import DashboardHome from '../components/dashboard/DashboardHome';
 import PropertyManagement from '../components/dashboard/PropertyManagement';
 import AddProperty from '../components/dashboard/AddProperty';
@@ -11,6 +11,7 @@ import AboutManagement from '../components/dashboard/AboutManagement';
 import PartnerManagement from '../components/dashboard/PartnerManagement';
 import CategoryManagement from '../components/dashboard/CategoryManagement';
 import ContactManagement from '../components/dashboard/ContactManagement';
+import TestimonialManagement from '../components/dashboard/TestimonialManagement';
 import LogoutConfirmModal from '../components/dashboard/LogoutConfirmModal';
 
 const Dashboard = () => {
@@ -66,7 +67,8 @@ const Dashboard = () => {
     { path: '/dashboard/about', icon: FiInfo, label: 'About Page' },
     { path: '/dashboard/partners', icon: FiBriefcase, label: 'Partners' },
     { path: '/dashboard/categories', icon: FiLayers, label: 'Categories' },
-    { path: '/dashboard/contact', icon: FiMessageSquare, label: 'Contact Page' },
+    { path: '/dashboard/contact',       icon: FiMessageSquare,  label: 'Contact Page' },
+    { path: '/dashboard/testimonials',  icon: FiMessageCircle,  label: 'Testimonials' },
   ];
 
   const isActive = (path, exact = false) => {
@@ -207,7 +209,8 @@ const Dashboard = () => {
                     <Route path="/about" element={<AboutManagement />} />
                     <Route path="/partners" element={<PartnerManagement />} />
                     <Route path="/categories" element={<CategoryManagement />} />
-                    <Route path="/contact" element={<ContactManagement />} />
+                    <Route path="/contact"       element={<ContactManagement />} />
+                    <Route path="/testimonials" element={<TestimonialManagement />} />
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </div>

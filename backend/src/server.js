@@ -31,10 +31,11 @@ app.use('/api/properties', require('./routes/propertyRoutes'));
 app.use('/api/inquiries',  require('./routes/inquiryRoutes'));
 
 // Content
-app.use('/api/about',      require('./routes/aboutRoutes'));
-app.use('/api/partners',   require('./routes/partnerRoutes'));
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/contact',    require('./routes/contactRoutes'));
+app.use('/api/about',         require('./routes/aboutRoutes'));
+app.use('/api/partners',      require('./routes/partnerRoutes'));
+app.use('/api/categories',    require('./routes/categoryRoutes'));
+app.use('/api/contact',       require('./routes/contactRoutes'));
+app.use('/api/testimonials',  require('./routes/testimonialRoutes'));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({ status: 'OK', message: 'API is running' }));

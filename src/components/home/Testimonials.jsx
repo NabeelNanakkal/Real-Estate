@@ -1,41 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
-import { FiMessageCircle } from 'react-icons/fi';
+import { FiMessageCircle, FiStar } from 'react-icons/fi';
+import { testimonialService } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUtils';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
 
+const StarRating = ({ rating }) => (
+  <div className="flex items-center space-x-0.5 mb-4">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <FiStar
+        key={star}
+        className={`w-3.5 h-3.5 ${star <= rating ? 'text-amber-400 fill-amber-400' : 'text-white/20'}`}
+      />
+    ))}
+  </div>
+);
+
 const Testimonials = () => {
-  const testimonials = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      role: 'Homeowner',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      content: "I couldn't be happier with the service provided by EstateHub. They helped me find my dream home in record time!"
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      role: 'Property Investor',
-      image: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      content: "The professional insights and market analysis from the team were invaluable. Highly recommended for any serious investor."
-    },
-    {
-      id: 3,
-      name: 'Emily Davis',
-      role: 'First-time Buyer',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      content: "As a first-time buyer, I was nervous, but the team guided me through every step. The process was smooth and transparent."
-    }
-  ];
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading]           = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const { data } = await testimonialService.getTestimonials();
+        if (data.success) setTestimonials(data.data);
+      } catch (err) {
+        console.error('Error fetching testimonials:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, []);
 
   return (
     <section className="py-20 bg-gradient-to-br from-indigo-900 to-blue-900 text-white relative overflow-hidden">
       {/* Decorative Circles */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+      <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
       <div className="container-custom relative z-10">
         <div className="text-center mb-12">
@@ -48,41 +54,56 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <Swiper
-          modules={[Pagination, Autoplay]}
-          spaceBetween={30}
-          slidesPerView={1}
-          autoplay={{ delay: 5000 }}
-          pagination={{ clickable: true }}
-          breakpoints={{
-            640: {
-              slidesPerView: 2,
-            },
-            1024: {
-              slidesPerView: 3,
-            },
-          }}
-          className="pb-12"
-        >
-          {testimonials.map((testimonial) => (
-            <SwiperSlide key={testimonial.id} className="h-auto">
-              <div className="glass p-8 rounded-2xl h-full flex flex-col transform transition-all duration-300 hover:-translate-y-2 hover:bg-white/15">
-                <div className="flex items-center space-x-4 mb-6">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-16 h-16 rounded-full border-2 border-accent object-cover"
-                  />
-                  <div>
-                    <h3 className="font-bold text-lg">{testimonial.name}</h3>
-                    <p className="text-blue-200 text-sm">{testimonial.role}</p>
+        {loading ? (
+          <div className="text-center text-blue-200 py-10 font-semibold animate-pulse">
+            Loading testimonials...
+          </div>
+        ) : testimonials.length === 0 ? (
+          <div className="text-center text-blue-200 py-10">No testimonials yet.</div>
+        ) : (
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={24}
+            slidesPerView={1}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            breakpoints={{
+              640:  { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+            className="testimonial-swiper pb-12"
+          >
+            {testimonials.map((t) => (
+              <SwiperSlide key={t._id}>
+                <div className="glass rounded-2xl p-8 flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:bg-white/15">
+                  {/* Stars */}
+                  <StarRating rating={t.rating} />
+
+                  {/* Quote */}
+                  <p className="text-gray-100 italic leading-relaxed flex-1 line-clamp-5 mb-6">
+                    &ldquo;{t.content}&rdquo;
+                  </p>
+
+                  {/* Author */}
+                  <div className="flex items-center space-x-4 pt-4 border-t border-white/10">
+                    <img
+                      src={getImageUrl(t.image) || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=3b82f6&color=fff&size=64`}
+                      alt={t.name}
+                      className="w-12 h-12 rounded-full border-2 border-accent object-cover flex-shrink-0"
+                      onError={(e) => {
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=3b82f6&color=fff&size=64`;
+                      }}
+                    />
+                    <div>
+                      <h3 className="font-bold text-base leading-tight">{t.name}</h3>
+                      <p className="text-blue-200 text-xs mt-0.5">{t.role}</p>
+                    </div>
                   </div>
                 </div>
-                <p className="text-gray-100 italic leading-relaxed flex-grow">"{testimonial.content}"</p>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
     </section>
   );

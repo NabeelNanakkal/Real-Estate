@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import { AMENITIES } from '../../constants/amenities';
 import { getImageUrl } from '../../utils/imageUtils';
+import { PROPERTY_TYPES, DEFAULT_PROPERTY_TYPE } from '../../constants/propertyTypes';
+import { PROPERTY_STATUS, LISTING_TYPE, STATUS_FILTER_ALL } from '../../constants/statuses';
+import { SORT_OPTIONS, SORT, DEFAULT_SORT } from '../../constants/sortOptions';
 
 const PropertyManagement = () => {
   // --- STATE ---
@@ -18,8 +21,8 @@ const PropertyManagement = () => {
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [sortOption, setSortOption] = useState('newest');
+  const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL);
+  const [sortOption, setSortOption] = useState(DEFAULT_SORT);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -27,8 +30,8 @@ const PropertyManagement = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
   const [formData, setFormData] = useState({
-    _id: null, title: '', description: '', propertyType: '', listingType: 'sale', price: '', 
-    location: '', city: '', bedrooms: '', bathrooms: '', area: '', 
+    _id: null, title: '', description: '', propertyType: '', listingType: LISTING_TYPE.SALE, price: '',
+    location: '', city: '', bedrooms: '', bathrooms: '', area: '',
     parking: '', amenities: [], images: [], nearby: []
   });
 
@@ -74,14 +77,14 @@ const PropertyManagement = () => {
     let result = properties.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
+      const matchesStatus = statusFilter === STATUS_FILTER_ALL || p.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
-    if (sortOption === 'price-high') result.sort((a, b) => b.price - a.price);
-    if (sortOption === 'price-low') result.sort((a, b) => a.price - b.price);
-    if (sortOption === 'views') result.sort((a, b) => b.views - a.views);
-    if (sortOption === 'newest') result.sort((a, b) => b._id.localeCompare(a._id));
+    if (sortOption === SORT.PRICE_HIGH) result.sort((a, b) => b.price - a.price);
+    if (sortOption === SORT.PRICE_LOW)  result.sort((a, b) => a.price - b.price);
+    if (sortOption === SORT.VIEWS)      result.sort((a, b) => b.views - a.views);
+    if (sortOption === SORT.NEWEST)     result.sort((a, b) => b._id.localeCompare(a._id));
 
     return result;
   }, [properties, searchTerm, statusFilter, sortOption]);
@@ -99,7 +102,7 @@ const PropertyManagement = () => {
     setFormData({
       _id: null, 
       listingId: `EH-${Math.floor(1000 + Math.random() * 9000)}`,
-      title: '', description: '', propertyType: 'apartment', listingType: 'sale', price: '', 
+      title: '', description: '', propertyType: DEFAULT_PROPERTY_TYPE, listingType: LISTING_TYPE.SALE, price: '',
       location: '', city: '', bedrooms: '', bathrooms: '', area: '', 
       parking: '', amenities: [], images: [], nearby: []
     });
@@ -116,7 +119,7 @@ const PropertyManagement = () => {
       title: property.title,
       description: property.description || '',
       propertyType: property.propertyType || property.type || '',
-      listingType: property.listingType || 'sale',
+      listingType: property.listingType || LISTING_TYPE.SALE,
       price: property.price,
       location: property.location,
       city: property.city || '',
@@ -288,10 +291,10 @@ const PropertyManagement = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full md:w-auto appearance-none pl-5 pr-10 py-3 bg-white border border-slate-100 rounded-xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-black text-[9px] uppercase tracking-widest cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.02)] text-slate-600"
               >
-                <option value="All">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-                <option value="Sold">Sold</option>
+                <option value={STATUS_FILTER_ALL}>All Status</option>
+                {Object.values(PROPERTY_STATUS).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
               <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-3.5 h-3.5" />
             </div>
@@ -303,10 +306,9 @@ const PropertyManagement = () => {
                 onChange={(e) => setSortOption(e.target.value)}
                 className="w-full md:w-auto appearance-none pl-5 pr-10 py-3 bg-white border border-slate-100 rounded-xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-black text-[9px] uppercase tracking-widest cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.02)] text-slate-600"
               >
-                <option value="newest">Newest</option>
-                <option value="price-high">Price: High</option>
-                <option value="price-low">Price: Low</option>
-                <option value="views">Trending</option>
+                {SORT_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
               <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-3.5 h-3.5" />
             </div>
@@ -376,8 +378,8 @@ const PropertyManagement = () => {
                   </td>
                   <td className="px-6 py-6">
                     <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${
-                      p.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500' :
-                      p.status === 'Sold' ? 'bg-slate-50 text-slate-400 border-slate-200 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900' :
+                      p.status === PROPERTY_STATUS.ACTIVE ? 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500' :
+                      p.status === PROPERTY_STATUS.SOLD   ? 'bg-slate-50 text-slate-400 border-slate-200 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900' :
                       'bg-orange-50 text-orange-600 border-orange-100 group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500'
                     }`}>
                       {p.status}
@@ -499,11 +501,9 @@ const PropertyManagement = () => {
                       required
                     >
                       <option value="">Select Type</option>
-                      <option value="apartment">Apartment</option>
-                      <option value="villa">Villa</option>
-                      <option value="house">House</option>
-                      <option value="office">Office</option>
-                      <option value="land">Land</option>
+                      {PROPERTY_TYPES.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

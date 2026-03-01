@@ -11,7 +11,15 @@ export const CRM_STATUS = {
 };
 
 export const PROPERTY_STATUS = {
-  ACTIVE: 'active',
-  SOLD:   'sold',
-  RENTED: 'rented',
+  ACTIVE:  'Active',
+  PENDING: 'Pending',
+  SOLD:    'Sold',
 };
+
+export const LISTING_TYPE = {
+  SALE:       'sale',
+  RENT:       'rent',
+  COMMERCIAL: 'commercial',
+};
+
+export const STATUS_FILTER_ALL = 'All';
