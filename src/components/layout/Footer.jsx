@@ -1,8 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
+import { categoryService, contactService } from '../../services/api';
 
 const Footer = () => {
+  const [categories, setCategories] = React.useState([]);
+  const [contactInfo, setContactInfo] = React.useState(null);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, contactRes] = await Promise.all([
+          categoryService.getCategories(),
+          contactService.getContactContent()
+        ]);
+        if (catRes.data.success) setCategories(catRes.data.data);
+        if (contactRes.data.success) setContactInfo(contactRes.data.data);
+      } catch (error) {
+        console.error('Error fetching footer data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <footer className="bg-dark text-white">
       <div className="container-custom py-12">
@@ -19,16 +39,36 @@ const Footer = () => {
               Your trusted partner in finding the perfect property. Discover your dream home with us.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors">
+              <a 
+                href={contactInfo?.socialLinks?.facebook || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors"
+              >
                 <FiFacebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors">
+              <a 
+                href={contactInfo?.socialLinks?.twitter || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors"
+              >
                 <FiTwitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors">
+              <a 
+                href={contactInfo?.socialLinks?.instagram || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors"
+              >
                 <FiInstagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors">
+              <a 
+                href={contactInfo?.socialLinks?.linkedin || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary rounded-lg flex items-center justify-center transition-colors"
+              >
                 <FiLinkedin className="w-5 h-5" />
               </a>
             </div>
@@ -66,26 +106,38 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Property Types</h3>
             <ul className="space-y-2">
-              <li>
-                <Link to="/properties?propertyType=apartment" className="text-gray-400 hover:text-primary transition-colors">
-                  Apartments
-                </Link>
-              </li>
-              <li>
-                <Link to="/properties?propertyType=villa" className="text-gray-400 hover:text-primary transition-colors">
-                  Villas
-                </Link>
-              </li>
-              <li>
-                <Link to="/properties?propertyType=house" className="text-gray-400 hover:text-primary transition-colors">
-                  Houses
-                </Link>
-              </li>
-              <li>
-                <Link to="/properties?propertyType=office" className="text-gray-400 hover:text-primary transition-colors">
-                  Offices
-                </Link>
-              </li>
+              {categories.length > 0 ? (
+                categories.slice(0, 4).map((cat) => (
+                  <li key={cat._id}>
+                    <Link to={cat.link} className="text-gray-400 hover:text-primary transition-colors">
+                      {cat.title}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li>
+                    <Link to="/properties?propertyType=apartment" className="text-gray-400 hover:text-primary transition-colors">
+                      Apartments
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/properties?propertyType=villa" className="text-gray-400 hover:text-primary transition-colors">
+                      Villas
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/properties?propertyType=house" className="text-gray-400 hover:text-primary transition-colors">
+                      Houses
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/properties?propertyType=office" className="text-gray-400 hover:text-primary transition-colors">
+                      Offices
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
@@ -95,36 +147,25 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
                 <FiMapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                <span className="text-gray-400">123 Real Estate St, City, Country</span>
+                <span className="text-gray-400">{contactInfo?.address || '123 Real Estate St, City, Country'}</span>
               </li>
               <li className="flex items-center space-x-3">
                 <FiPhone className="w-5 h-5 text-primary flex-shrink-0" />
-                <span className="text-gray-400">+1 234 567 8900</span>
+                <span className="text-gray-400">{contactInfo?.phone || '+1 234 567 8900'}</span>
               </li>
               <li className="flex items-center space-x-3">
                 <FiMail className="w-5 h-5 text-primary flex-shrink-0" />
-                <span className="text-gray-400">info@estatehub.com</span>
+                <span className="text-gray-400">{contactInfo?.email || 'info@estatehub.com'}</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div className="border-t border-white/10 mt-8 pt-8 flex justify-center">
           <p className="text-gray-400 text-sm">
             © 2026 EstateHub. All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/privacy" className="text-gray-400 hover:text-primary text-sm transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-gray-400 hover:text-primary text-sm transition-colors">
-              Terms of Service
-            </Link>
-            <Link to="/contact" className="text-gray-400 hover:text-primary text-sm transition-colors">
-              Contact
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

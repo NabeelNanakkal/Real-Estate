@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHome, FiShoppingBag, FiTrendingUp } from 'react-icons/fi';
-import { FaBuilding } from 'react-icons/fa';
+import { categoryService } from '../../services/api';
+import { CATEGORY_ICON_MAP } from '../../constants/iconMap';
 
 const PropertyCategories = () => {
-  const categories = [
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const defaultCategories = [
     {
-      icon: FiHome,
+      iconKey: 'FiHome',
       title: 'Residential',
       count: '500+',
       description: 'Apartments, Villas & Houses',
@@ -14,7 +17,7 @@ const PropertyCategories = () => {
       gradient: 'from-blue-500 to-cyan-500'
     },
     {
-      icon: FaBuilding,
+      iconKey: 'FaBuilding',
       title: 'Commercial',
       count: '200+',
       description: 'Offices & Retail Spaces',
@@ -22,7 +25,7 @@ const PropertyCategories = () => {
       gradient: 'from-purple-500 to-pink-500'
     },
     {
-      icon: FiShoppingBag,
+      iconKey: 'FiShoppingBag',
       title: 'For Rent',
       count: '300+',
       description: 'Rental Properties',
@@ -30,7 +33,7 @@ const PropertyCategories = () => {
       gradient: 'from-orange-500 to-red-500'
     },
     {
-      icon: FiTrendingUp,
+      iconKey: 'FiTrendingUp',
       title: 'New Projects',
       count: '50+',
       description: 'Latest Developments',
@@ -38,6 +41,40 @@ const PropertyCategories = () => {
       gradient: 'from-green-500 to-teal-500'
     }
   ];
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await categoryService.getCategories();
+        if (data.success && data.data.length > 0) {
+          setCategories(data.data);
+        } else {
+          setCategories(defaultCategories);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setCategories(defaultCategories);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-20 bg-white animate-pulse">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-64 bg-gray-50 rounded-2xl"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-20 bg-white">
@@ -51,7 +88,7 @@ const PropertyCategories = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category, index) => {
-            const Icon = category.icon;
+            const Icon = CATEGORY_ICON_MAP[category.iconKey] || CATEGORY_ICON_MAP.FiLayers;
             return (
               <Link
                 key={index}

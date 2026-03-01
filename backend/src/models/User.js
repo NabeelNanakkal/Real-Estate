@@ -33,6 +33,22 @@ const userSchema = new mongoose.Schema({
   },
   company: {
     type: String
+  },
+  emailNotifications: {
+    type: Boolean,
+    default: true
+  },
+  pushNotifications: {
+    type: Boolean,
+    default: false
+  },
+  analyticsTracking: {
+    type: Boolean,
+    default: true
+  },
+  twoFactorAuth: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

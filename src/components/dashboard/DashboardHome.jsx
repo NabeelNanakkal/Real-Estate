@@ -1,96 +1,150 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHome, FiDollarSign, FiEye, FiMail, FiTrendingUp, FiPlus } from 'react-icons/fi';
+import { FiHome, FiDollarSign, FiEye, FiMail, FiTrendingUp, FiPlus, FiChevronRight } from 'react-icons/fi';
+import { propertyService } from '../../services/api';
 
 const DashboardHome = () => {
+  const [statsData, setStatsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const { data } = await propertyService.getDashboardStats();
+        if (data.success) {
+          setStatsData(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const stats = [
-    { icon: FiHome, label: 'Total Properties', value: '24', change: '+3', color: 'from-blue-500 to-cyan-500' },
-    { icon: FiDollarSign, label: 'Total Revenue', value: '$125K', change: '+12%', color: 'from-green-500 to-teal-500' },
-    { icon: FiEye, label: 'Total Views', value: '1,234', change: '+23%', color: 'from-purple-500 to-pink-500' },
-    { icon: FiMail, label: 'Inquiries', value: '45', change: '+8', color: 'from-orange-500 to-red-500' },
+    { icon: FiHome, label: 'Properties', value: statsData?.totalProperties || '0', change: '+1', color: 'bg-blue-600', shadow: 'shadow-blue-200', gradient: 'from-blue-600 to-indigo-600' },
+    { icon: FiDollarSign, label: 'Revenue', value: statsData ? `$${(statsData.totalRevenue / 1000).toFixed(0)}K` : '$0', change: '+2%', color: 'bg-emerald-600', shadow: 'shadow-emerald-200', gradient: 'from-emerald-600 to-teal-600' },
+    { icon: FiEye, label: 'Views', value: statsData?.totalViews.toLocaleString() || '0', change: '+15%', color: 'bg-indigo-600', shadow: 'shadow-indigo-200', gradient: 'from-indigo-600 to-purple-600' },
+    { icon: FiMail, label: 'Inquiries', value: statsData?.totalInquiries || '0', change: '+3', color: 'bg-blue-600', shadow: 'shadow-blue-200', gradient: 'from-blue-600 to-sky-600' },
   ];
 
-  const recentProperties = [
-    { id: 1, title: 'Modern Luxury Villa', status: 'Active', views: 234, inquiries: 12 },
-    { id: 2, title: 'Downtown Apartment', status: 'Active', views: 189, inquiries: 8 },
-    { id: 3, title: 'Beachfront Property', status: 'Pending', views: 156, inquiries: 15 },
-  ];
+  const recentProperties = statsData?.recentProperties || [];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div className="animate-fade-in space-y-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
-          <p className="text-gray-600 mt-1">Here's what's happening with your properties</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">Dashboard Overview</h1>
+          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.1em]">Property statistics</p>
         </div>
-        <Link to="/dashboard/add-property" className="btn-primary flex items-center space-x-2">
-          <FiPlus className="w-5 h-5" />
-          <span>Add Property</span>
-        </Link>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
-                  <Icon className="w-6 h-6 text-white" />
+            <div key={index} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-700 group cursor-default relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none group-hover:bg-primary/5 transition-colors duration-700"></div>
+                
+                <div className="flex items-center justify-between mb-6 relative">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${stat.gradient} rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
+                        <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex items-center bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border border-emerald-100/50">
+                        <FiTrendingUp className="w-2.5 h-2.5 mr-1" />
+                        {stat.change}
+                    </div>
                 </div>
-                <div className="flex items-center text-green-600 text-sm font-semibold">
-                  <FiTrendingUp className="w-4 h-4 mr-1" />
-                  {stat.change}
+                
+                <div className="relative">
+                    <div className="text-2xl font-black text-slate-900 mb-1 tracking-tight">{stat.value}</div>
+                    <div className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{stat.label}</div>
                 </div>
-              </div>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <div className="text-gray-600 text-sm">{stat.label}</div>
             </div>
           );
         })}
       </div>
 
-      {/* Recent Properties */}
-      <div className="card p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Properties</h2>
-          <Link to="/dashboard/properties" className="text-primary font-semibold hover:underline">
-            View All
+      {/* Recent Properties Section */}
+      <div className="bg-white rounded-[40px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] overflow-hidden">
+        <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row justify-between items-center bg-slate-50/20 gap-4">
+          <div className="flex items-center space-x-3">
+              <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#3b82f6]"></div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight uppercase">Recent Properties</h2>
+          </div>
+          <Link to="/dashboard/properties" className="group flex items-center space-x-2 text-slate-400 font-black text-[9px] uppercase tracking-[0.2em] hover:text-primary transition-colors">
+            <span>View All Properties</span>
+            <div className="w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary group-hover:bg-primary group-hover:text-white transition-all">
+                <FiChevronRight className="w-2.5 h-2.5 transform group-hover:translate-x-0.5 transition-transform" />
+            </div>
           </Link>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-gray-600 font-semibold">Property</th>
-                <th className="text-left py-3 px-4 text-gray-600 font-semibold">Status</th>
-                <th className="text-left py-3 px-4 text-gray-600 font-semibold">Views</th>
-                <th className="text-left py-3 px-4 text-gray-600 font-semibold">Inquiries</th>
-                <th className="text-right py-3 px-4 text-gray-600 font-semibold">Actions</th>
+              <tr className="bg-white">
+                <th className="text-left py-4 px-8 text-slate-400 font-black text-[9px] uppercase tracking-widest">Property</th>
+                <th className="text-left py-4 px-8 text-slate-400 font-black text-[9px] uppercase tracking-widest">Status</th>
+                <th className="text-center py-4 px-8 text-slate-400 font-black text-[9px] uppercase tracking-widest">Stats</th>
+                <th className="text-right py-4 px-8 text-slate-400 font-black text-[9px] uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {recentProperties.map((property) => (
-                <tr key={property.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-4 font-medium text-gray-900">{property.title}</td>
-                  <td className="py-4 px-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      property.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {property.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-gray-600">{property.views}</td>
-                  <td className="py-4 px-4 text-gray-600">{property.inquiries}</td>
-                  <td className="py-4 px-4 text-right">
-                    <Link to={`/property/${property.id}`} className="text-primary hover:underline font-semibold">
-                      View
-                    </Link>
-                  </td>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="py-20 text-center font-black text-slate-300 uppercase tracking-widest text-xs animate-pulse">Loading properties...</td>
                 </tr>
-              ))}
+              ) : recentProperties.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-20 text-center text-slate-400 font-bold">No properties found.</td>
+                </tr>
+              ) : (
+                recentProperties.map((property) => (
+                  <tr key={property._id} className="hover:bg-slate-50/50 transition-all duration-300 group">
+                    <td className="py-5 px-8">
+                      <div className="font-black text-slate-900 text-[14px] group-hover:text-primary transition-colors cursor-pointer tracking-tight">{property.title}</div>
+                      <div className="flex items-center mt-1 space-x-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                          <span className="bg-slate-100 px-1.5 py-0.5 rounded">ID: #{property._id.slice(-6)}</span>
+                      </div>
+                    </td>
+                    <td className="py-5 px-8">
+                      <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${
+                        property.status === 'active' 
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500' 
+                          : 'bg-orange-50 text-orange-600 border-orange-100 group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500'
+                      }`}>
+                        {property.status}
+                      </span>
+                    </td>
+                    <td className="py-5 px-8">
+                      <div className="flex justify-center items-center space-x-6">
+                        <div className="text-center">
+                          <div className="text-base font-black text-slate-900 tracking-tight">{property.views}</div>
+                          <div className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] -mt-1">Views</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-base font-black text-slate-900 tracking-tight">{property.inquiries}</div>
+                          <div className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] -mt-1">Inquiries</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-5 px-8 text-right">
+                      <Link 
+                        to={`/property/${property._id}`} 
+                        className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-900 rounded-[16px] text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 hover:shadow-xl hover:shadow-slate-900/10 transition-all duration-500"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

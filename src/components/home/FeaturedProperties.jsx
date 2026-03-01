@@ -1,125 +1,107 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiMaximize2 } from 'react-icons/fi';
 import { FaBath, FaBed } from 'react-icons/fa';
+import { propertyService } from '../../services/api';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const FeaturedProperties = () => {
-  // Mock data - will be replaced with API data
-  const properties = [
-    {
-      id: 1,
-      title: 'Modern Luxury Villa',
-      location: 'Beverly Hills, CA',
-      price: 1250000,
-      bedrooms: 4,
-      bathrooms: 3,
-      area: 3500,
-      image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-      featured: true,
-      type: 'sale'
-    },
-    {
-      id: 2,
-      title: 'Downtown Apartment',
-      location: 'Manhattan, NY',
-      price: 850000,
-      bedrooms: 2,
-      bathrooms: 2,
-      area: 1200,
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-      featured: true,
-      type: 'sale'
-    },
-    {
-      id: 3,
-      title: 'Beachfront Property',
-      location: 'Miami, FL',
-      price: 2100000,
-      bedrooms: 5,
-      bathrooms: 4,
-      area: 4200,
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-      featured: true,
-      type: 'sale'
-    },
-    {
-      id: 4,
-      title: 'Cozy Family House',
-      location: 'Austin, TX',
-      price: 650000,
-      bedrooms: 3,
-      bathrooms: 2,
-      area: 2100,
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
-      featured: true,
-      type: 'sale'
-    }
-  ];
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        setLoading(true);
+        // We fetch with featured: true first
+        const { data } = await propertyService.getProperties({ featured: true });
+        if (data.success && data.data.length > 0) {
+          setProperties(data.data.slice(0, 4));
+        } else {
+          // Fallback to latest 4 if no featured marked
+          const { data: latestData } = await propertyService.getProperties();
+          if (latestData.success) {
+            setProperties(latestData.data.slice(0, 4));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching featured properties:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-20 flex justify-center items-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-white">
       <div className="container-custom">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Properties</h2>
-            <p className="text-gray-600">Handpicked properties just for you</p>
+            <h2 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Featured Properties</h2>
+            <p className="text-gray-500 font-medium">Handpicked properties just for you</p>
           </div>
-          <Link to="/properties" className="btn-secondary hidden md:block">
-            View All
+          <Link to="/properties" className="text-primary font-black text-xs uppercase tracking-[0.2em] border-b-2 border-primary/20 pb-1 hover:border-primary transition-all hidden md:block">
+            View All Assets
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {properties.map((property) => (
             <Link
-              key={property.id}
-              to={`/property/${property.id}`}
-              className="card card-hover group"
+              key={property._id}
+              to={`/property/${property._id}`}
+              className="group bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden"
             >
               {/* Image */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-56 overflow-hidden">
                 <img
-                  src={property.image}
+                  src={getImageUrl(property.images?.[0])}
                   alt={property.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
 
-                {property.featured && (
-                  <div className="absolute top-4 left-4 bg-gradient-primary text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Featured
-                  </div>
-                )}
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-gray-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  Featured
+                </div>
+                
+                <div className="absolute bottom-4 right-4 bg-primary text-white px-4 py-1.5 rounded-xl text-sm font-black shadow-xl">
+                  ${property.price.toLocaleString()}
+                </div>
               </div>
 
               {/* Content */}
-              <div className="p-5">
-                <div className="flex items-center text-gray-500 text-sm mb-2">
-                  <FiMapPin className="w-4 h-4 mr-1" />
-                  <span>{property.location}</span>
+              <div className="p-6">
+                <div className="flex items-center text-gray-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                  <FiMapPin className="w-3 h-3 mr-1 text-primary" />
+                  <span>{property.city}, {property.location.split(',').pop()}</span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
+                <h3 className="text-lg font-black text-gray-900 mb-3 group-hover:text-primary transition-colors line-clamp-1">
                   {property.title}
                 </h3>
 
-                <div className="flex items-center justify-between text-gray-600 text-sm mb-4">
-                  <div className="flex items-center space-x-1">
-                    <FaBed className="w-4 h-4" />
-                    <span>{property.bedrooms}</span>
+                <div className="flex items-center justify-between text-gray-500 text-[10px] font-black uppercase tracking-widest pt-4 border-t border-gray-50">
+                  <div className="flex items-center">
+                    <FaBed className="w-3 h-3 mr-1.5 text-blue-500" />
+                    <span>{property.bedrooms} Beds</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <FaBath className="w-4 h-4" />
-                    <span>{property.bathrooms}</span>
+                  <div className="flex items-center">
+                    <FaBath className="w-3 h-3 mr-1.5 text-emerald-500" />
+                    <span>{property.bathrooms} Baths</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <FiMaximize2 className="w-4 h-4" />
-                    <span>{property.area} sqft</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="text-2xl font-bold text-gradient">
-                    ${property.price.toLocaleString()}
+                  <div className="flex items-center">
+                    <FiMaximize2 className="w-3 h-3 mr-1.5 text-orange-500" />
+                    <span>{property.area} Sqft</span>
                   </div>
                 </div>
               </div>
@@ -127,9 +109,15 @@ const FeaturedProperties = () => {
           ))}
         </div>
 
-        <div className="text-center mt-8 md:hidden">
-          <Link to="/properties" className="btn-primary">
-            View All Properties
+        {properties.length === 0 && (
+          <div className="text-center py-20 bg-gray-50 rounded-[48px] border border-dashed border-gray-200">
+            <h3 className="text-xl font-bold text-gray-400">No synchronized properties available.</h3>
+          </div>
+        )}
+
+        <div className="text-center mt-12 md:hidden">
+          <Link to="/properties" className="gradient-primary text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">
+            View All Portfolio
           </Link>
         </div>
       </div>

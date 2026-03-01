@@ -1,51 +1,69 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import Home from './pages/Home';
-import PropertyList from './pages/PropertyList';
-import PropertyDetail from './pages/PropertyDetail';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import Contact from './pages/Contact';
-import About from './pages/About';
 import MouseSpotlight from './components/layout/MouseSpotlight';
+import { ROUTES } from './constants/routes';
+import { PROTECTED_ROLES } from './constants/roles';
 
-// Layout component for public pages
-const PublicLayout = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <MouseSpotlight />
-      <Header />
-      <main className="flex-grow">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
-  );
+const Home           = lazy(() => import('./pages/Home'));
+const PropertyList   = lazy(() => import('./pages/PropertyList'));
+const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
+const Dashboard      = lazy(() => import('./pages/Dashboard'));
+const Login          = lazy(() => import('./pages/Auth/Login'));
+const Register       = lazy(() => import('./pages/Auth/Register'));
+const Contact        = lazy(() => import('./pages/Contact'));
+const About          = lazy(() => import('./pages/About'));
+
+const ProtectedRoute = ({ children, allowedRoles = PROTECTED_ROLES }) => {
+  const token = localStorage.getItem('token');
+  const user  = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
+
+  if (!token) return <Navigate to={ROUTES.LOGIN} replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to={ROUTES.HOME} replace />;
+
+  return children;
 };
+
+const PublicLayout = () => (
+  <div className="min-h-screen flex flex-col">
+    <MouseSpotlight />
+    <Header />
+    <main className="flex-grow"><Outlet /></main>
+    <Footer />
+  </div>
+);
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Dashboard Routes - No Header/Footer */}
-        <Route path="/dashboard/*" element={<Dashboard />} />
+      <Toaster position="top-right" reverseOrder={false} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route
+            path={`${ROUTES.DASHBOARD}/*`}
+            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+          />
 
-        {/* Auth Routes - No Header/Footer */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+          <Route path="/login"    element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Public Routes - With Header/Footer */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/properties" element={<PropertyList />} />
-          <Route path="/property/:id" element={<PropertyDetail />} />
-          <Route path="/contact" element={<Contact />} />
-        </Route>
-      </Routes>
+          <Route element={<PublicLayout />}>
+            <Route path={ROUTES.HOME}       element={<Home />} />
+            <Route path={ROUTES.ABOUT}      element={<About />} />
+            <Route path={ROUTES.PROPERTIES} element={<PropertyList />} />
+            <Route path="/property/:id"     element={<PropertyDetail />} />
+            <Route path={ROUTES.CONTACT}    element={<Contact />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

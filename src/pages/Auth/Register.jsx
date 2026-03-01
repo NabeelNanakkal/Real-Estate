@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiMail, FiLock, FiUser, FiPhone } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiUser, FiMail, FiPhone, FiLock } from 'react-icons/fi';
+import { authService } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,11 +15,27 @@ const Register = () => {
     confirmPassword: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // API call will be added later
-    console.log('Register:', formData);
-    navigate('/dashboard');
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data } = await authService.register(formData);
+      if (data.success) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data));
+        toast.success('Account created successfully! Welcome to EstateHub.');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,8 +129,12 @@ const Register = () => {
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-semibold transition-all hover:scale-105">
-              Create Account
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

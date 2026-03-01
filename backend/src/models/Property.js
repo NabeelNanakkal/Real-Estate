@@ -18,51 +18,56 @@ const propertySchema = new mongoose.Schema({
   listingType: {
     type: String,
     required: true,
-    enum: ['sale', 'rent', 'commercial']
+    enum: ['sale', 'rent', 'commercial'],
+    default: 'sale'
   },
   price: {
     type: Number,
     required: true
   },
   location: {
-    address: {
-      type: String,
-      required: true
-    },
-    city: {
-      type: String,
-      required: true
-    },
-    area: String,
-    coordinates: {
-      lat: Number,
-      lng: Number
-    }
+    type: String,
+    required: true
   },
-  details: {
-    bedrooms: {
-      type: Number,
-      required: true
-    },
-    bathrooms: {
-      type: Number,
-      required: true
-    },
-    area: {
-      type: Number,
-      required: true
-    },
-    furnished: {
-      type: Boolean,
-      default: false
-    },
-    parking: {
-      type: Number,
-      default: 0
-    }
+  city: {
+    type: String,
+    required: true
+  },
+  bedrooms: {
+    type: Number,
+    required: true
+  },
+  bathrooms: {
+    type: Number,
+    required: true
+  },
+  area: {
+    type: Number,
+    required: true
+  },
+  yearBuilt: {
+    type: Number,
+    default: new Date().getFullYear()
+  },
+  listingId: {
+    type: String,
+    unique: true
+  },
+  parking: {
+    type: Number,
+    default: 0
   },
   amenities: [{
-    type: String
+    name: String,
+    iconKey: String
+  }],
+  nearby: [{
+    name: String,
+    distance: String,
+    type: {
+      type: String,
+      enum: ['school', 'hospital', 'shopping', 'transport', 'park', 'other']
+    }
   }],
   images: [{
     type: String

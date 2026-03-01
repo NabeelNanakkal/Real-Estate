@@ -1,49 +1,54 @@
-const express = require('express');
+const express  = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const cors     = require('cors');
+const dotenv   = require('dotenv');
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
+// ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/realestate', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => console.error('❌ MongoDB Connection Error:', err));
+// ─── Database ─────────────────────────────────────────────────────────────────
+mongoose
+  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/realestate')
+  .then(() => console.log('✅ MongoDB Connected'))
+  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// Routes
-app.use('/api/auth', require('./routes/authRoutes'));
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+// Auth & Users
+app.use('/api/auth',       require('./routes/authRoutes'));
+app.use('/api/users',      require('./routes/userRoutes'));
+app.use('/api/auth/zoho',  require('./routes/zohoRoutes'));
+
+// Core
 app.use('/api/properties', require('./routes/propertyRoutes'));
-app.use('/api/inquiries', require('./routes/inquiryRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/inquiries',  require('./routes/inquiryRoutes'));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Real Estate API is running' });
+// Content
+app.use('/api/about',      require('./routes/aboutRoutes'));
+app.use('/api/partners',   require('./routes/partnerRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/contact',    require('./routes/contactRoutes'));
+
+// ─── Health check ─────────────────────────────────────────────────────────────
+app.get('/api/health', (_req, res) => res.json({ status: 'OK', message: 'API is running' }));
+
+// ─── Global error handler ─────────────────────────────────────────────────────
+app.use((err, _req, res, _next) => {
+  const status  = err.statusCode || err.status || 500;
+  const message = err.isOperational ? err.message : 'Internal Server Error';
+  if (!err.isOperational) console.error(err.stack);
+  res.status(status).json({ success: false, message });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  });
-});
-
+// ─── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 module.exports = app;

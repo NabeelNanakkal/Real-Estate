@@ -1,19 +1,33 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiMail, FiLock } from 'react-icons/fi';
+import { authService } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // API call will be added later
-    console.log('Login:', formData);
-    navigate('/dashboard');
+    try {
+      setLoading(true);
+      const { data } = await authService.login(formData);
+      if (data.success) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data));
+        toast.success(`Welcome back, ${data.data.name}!`);
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +86,12 @@ const Login = () => {
               </Link>
             </div>
 
-            <button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-semibold transition-all hover:scale-105">
-              Sign In
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
         </div>

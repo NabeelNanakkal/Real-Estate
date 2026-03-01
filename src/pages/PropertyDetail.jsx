@@ -1,60 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, Link } from 'react-router-dom';
 import { 
-  FiMapPin, FiMaximize2, FiShare2, FiPhone, FiMail, 
-  FiCalendar, FiHash, FiCheckCircle, FiChevronRight,
-  FiStar, FiClock, FiShoppingBag, FiTruck, FiX, FiChevronLeft
+  FiMapPin, FiMaximize2, FiShare2, FiPhone, FiMail,
+  FiCalendar, FiCheckCircle, FiChevronRight, FiX, FiChevronLeft
 } from 'react-icons/fi';
-import { FaBath, FaBed, FaParking, FaSwimmingPool, FaWifi, FaDumbbell, FaSchool } from 'react-icons/fa';
+import { FaBath, FaBed } from 'react-icons/fa';
+import { propertyService, inquiryService } from '../services/api';
+import { FEATURE_ICON_MAP } from '../constants/iconMap';
+import { getImageUrl } from '../utils/imageUtils';
+import { formatCurrency } from '../utils/formatters';
 
 const PropertyDetail = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [property, setProperty] = useState(null);
+  const [similarProperties, setSimilarProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryForm, setInquiryForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
 
-  // Enhanced Mock Data
-  const property = {
-    id: 1,
-    title: 'Modern Luxury Villa',
-    location: 'Beverly Hills, CA',
-    price: 1250000,
-    type: 'For Sale',
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 3500,
-    yearBuilt: 2022,
-    listingId: 'EH-89241',
-    images: [
-      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200', // Living Room
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', // Bedroom
-      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800', // Exterior
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800', // Kitchen
-      'https://images.unsplash.com/photo-1507089947368-19c1da977535?w=800', // Pool
-    ],
-    description: 'This stunning modern villa represents the pinnacle of luxury living in Beverly Hills. Boasting an open-concept design with floor-to-ceiling windows, the property is flooded with natural light and offers seamless indoor-outdoor flow. Every detail has been meticulously crafted with premium finishes, including Italian marble flooring, a chef-grade kitchen with Sub-Zero appliances, and a primary suite that rivals the world\'s finest hotels.',
-    amenities: [
-      { name: 'Swimming Pool', icon: FaSwimmingPool },
-      { name: 'Private Gym', icon: FaDumbbell },
-      { name: 'Smart Home', icon: FiCheckCircle },
-      { name: 'High-speed WiFi', icon: FaWifi },
-      { name: 'Secure Parking', icon: FaParking },
-      { name: 'Security System', icon: FiCheckCircle },
-    ],
-    nearby: [
-      { name: 'Highland School', distance: '1.2 miles', icon: FaSchool },
-      { name: 'Century City Mall', distance: '2.5 miles', icon: FiShoppingBag },
-      { name: 'Public Transit', distance: '0.5 miles', icon: FiTruck },
-    ],
-    agent: {
-      name: 'Sarah Johnson',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
-      phone: '+1 (555) 123-4567',
-      email: 'sarah.j@estatehub.com',
-      listings: 12,
-      rating: 4.9
-    }
-  };
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        setLoading(true);
+        const { data } = await propertyService.getProperty(id);
+        if (data.success) {
+          setProperty(data.data);
+          
+          // Fetch similar properties by type
+          const { data: similarData } = await propertyService.getProperties({ 
+            propertyType: data.data.propertyType,
+            limit: 10 
+          });
+          if (similarData.success) {
+            // Filter out current property and prioritize same city if available
+            const filtered = similarData.data.filter(p => p._id !== id);
+            
+            // Optional: Sort so same city comes first
+            const sorted = filtered.sort((a, b) => {
+              if (a.city === data.data.city && b.city !== data.data.city) return -1;
+              if (a.city !== data.data.city && b.city === data.data.city) return 1;
+              return 0;
+            });
+
+            setSimilarProperties(sorted.slice(0, 3));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching property:', err);
+        setError('Failed to load property details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [id]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+  if (error || !property) return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500 font-bold">{error || 'Property not found.'}</div>;
 
   const openGallery = (index) => {
     setCurrentImageIndex(index);
@@ -73,6 +86,43 @@ const PropertyDetail = () => {
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
+  };
+
+  const handleInquirySubmit = async (e) => {
+    e.preventDefault();
+    if (!inquiryForm.name || !inquiryForm.email || !inquiryForm.phone || !inquiryForm.message) {
+      return toast.error('Please fill in all fields');
+    }
+
+    try {
+      setInquiryLoading(true);
+      const { data } = await inquiryService.createInquiry({
+        ...inquiryForm,
+        property: id
+      });
+
+      if (data.success) {
+        toast.success('Inquiry sent successfully! Our agent will contact you soon.');
+        setInquiryForm({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      }
+    } catch (err) {
+      console.error('Inquiry error:', err);
+      toast.error(err.response?.data?.message || 'Failed to send inquiry.');
+    } finally {
+      setInquiryLoading(false);
+    }
+  };
+
+  const scrollToInquiry = () => {
+    const element = document.getElementById('inquiry-form');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -94,10 +144,6 @@ const PropertyDetail = () => {
                 <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
                   {property.type}
                 </span>
-                <span className="flex items-center text-yellow-500 font-semibold space-x-1">
-                  <FiStar className="fill-current" />
-                  <span>4.8 (24 Reviews)</span>
-                </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{property.title}</h1>
               <div className="flex items-center text-gray-500">
@@ -107,7 +153,7 @@ const PropertyDetail = () => {
             </div>
             <div className="text-right">
               <div className="text-3xl md:text-4xl font-black text-primary mb-2">
-                ${property.price.toLocaleString()}
+                {formatCurrency(property.price)}
               </div>
               <div className="flex items-center md:justify-end space-x-3">
                 <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-semibold">
@@ -120,54 +166,82 @@ const PropertyDetail = () => {
         </div>
       </div>
 
-      {/* Grid Gallery Section */}
+      {/* Dynamic Grid Gallery Section */}
       <div className="container-custom py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[400px] md:h-[600px] rounded-3xl overflow-hidden animate-fade-in">
-          <div className="md:col-span-2 h-full">
+        <div className={`grid gap-4 h-[400px] md:h-[600px] rounded-3xl overflow-hidden animate-fade-in ${
+          property.images?.length === 1 ? 'grid-cols-1' :
+          property.images?.length === 2 ? 'grid-cols-2' :
+          property.images?.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
+          'grid-cols-1 md:grid-cols-4'
+        }`}>
+          {/* Main Large Image */}
+          <div className={`${
+            property.images?.length === 1 ? 'col-span-1' :
+            property.images?.length === 2 ? 'col-span-1' :
+            property.images?.length === 3 ? 'md:col-span-2' :
+            'md:col-span-2'
+          } h-full`}>
             <img 
-              src={property.images[0]} 
+              src={getImageUrl(property.images?.[0])} 
               alt="Main" 
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
               onClick={() => openGallery(0)}
             />
           </div>
-          <div className="hidden md:grid grid-cols-1 grid-rows-2 gap-4 col-span-1 h-full">
-            <img 
-              src={property.images[1]} 
-              alt="Interior" 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
-              onClick={() => openGallery(1)}
-            />
-            <img 
-              src={property.images[2]} 
-              alt="Bedroom" 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
-              onClick={() => openGallery(2)}
-            />
-          </div>
-          <div className="hidden md:grid grid-cols-1 grid-rows-2 gap-4 col-span-1 h-full">
-            <img 
-              src={property.images[3]} 
-              alt="Kitchen" 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
-              onClick={() => openGallery(3)}
-            />
-            <div className="relative h-full">
+
+          {/* Secondary Images Column */}
+          {property.images?.length >= 2 && (
+            <div className={`grid gap-4 h-full ${
+              property.images.length === 2 ? 'grid-rows-1' :
+              property.images.length === 3 ? 'grid-rows-2' :
+              property.images.length === 4 ? 'grid-rows-1' :
+              'grid-rows-2'
+            }`}>
               <img 
-                src={property.images[4]} 
-                alt="Pool" 
+                src={getImageUrl(property.images[1])} 
+                alt="Interior" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
-                onClick={() => openGallery(4)}
+                onClick={() => openGallery(1)}
               />
-              <button 
-                onClick={() => openGallery(0)}
-                className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white font-bold hover:bg-black/60 transition-colors"
-              >
-                <span className="text-2xl">+{property.images.length}</span>
-                <span className="text-sm">View All Photos</span>
-              </button>
+              {(property.images.length === 3 || property.images.length >= 5) && (
+                <img 
+                  src={getImageUrl(property.images[2])} 
+                  alt="Bedroom" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
+                  onClick={() => openGallery(2)}
+                />
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Tertiary Images Column */}
+          {property.images?.length >= 4 && (
+            <div className="hidden md:grid grid-cols-1 grid-rows-2 gap-4 h-full">
+              <img 
+                src={getImageUrl(property.images[property.images.length === 4 ? 2 : 3])} 
+                alt="Kitchen" 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
+                onClick={() => openGallery(property.images.length === 4 ? 2 : 3)}
+              />
+              <div className="relative h-full">
+                <img 
+                  src={getImageUrl(property.images[property.images.length === 4 ? 3 : 4])} 
+                  alt="Exterior" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" 
+                  onClick={() => openGallery(property.images.length === 4 ? 3 : 4)}
+                />
+                {property.images.length > 5 && (
+                  <button 
+                    onClick={() => openGallery(0)}
+                    className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white font-bold hover:bg-black/60 transition-colors"
+                  >
+                    <span className="text-2xl">+{property.images.length - 5}</span>
+                    <span className="text-sm">View All Photos</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -189,7 +263,7 @@ const PropertyDetail = () => {
                     <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-3">
                       <Icon className="text-xl" />
                     </div>
-                    <span className="text-xl font-bold text-gray-900">{stat.value}</span>
+                    <span className="text-xl font-bold text-gray-900">{stat.value || '0'}</span>
                     <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">{stat.label}</span>
                   </div>
                 );
@@ -235,14 +309,17 @@ const PropertyDetail = () => {
                 )}
                 {activeTab === 'amenities' && (
                   <div className="animate-fade-in grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {property.amenities.map((item, idx) => (
-                      <div key={idx} className="flex items-center space-x-4 p-4 rounded-xl border border-gray-50 bg-gray-50/50">
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
-                          <item.icon />
+                    {property.amenities?.map((item, idx) => {
+                      const Icon = FEATURE_ICON_MAP[item.iconKey] || FiCheckCircle;
+                      return (
+                        <div key={idx} className="flex items-center space-x-4 p-4 rounded-xl border border-gray-50 bg-gray-50/50">
+                          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
+                            <Icon />
+                          </div>
+                          <span className="font-bold text-gray-700">{item.name}</span>
                         </div>
-                        <span className="font-bold text-gray-700">{item.name}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 {activeTab === 'location' && (
@@ -270,17 +347,20 @@ const PropertyDetail = () => {
                 Nearby Places
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {property.nearby.map((place, idx) => (
-                  <div key={idx} className="flex items-center space-x-4 p-4 rounded-2xl border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-all group">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-                      <place.icon className="text-xl" />
+                {property.nearby?.map((place, idx) => {
+                  const Icon = FEATURE_ICON_MAP[place.type] || FiMapPin;
+                  return (
+                    <div key={idx} className="flex items-center space-x-4 p-4 rounded-2xl border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-all group">
+                      <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                        <Icon className="text-xl" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 leading-tight">{place.name}</h4>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">{place.distance}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 leading-tight">{place.name}</h4>
-                      <p className="text-xs text-gray-500 font-semibold uppercase">{place.distance}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -291,14 +371,10 @@ const PropertyDetail = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Agent</h3>
               
               <div className="flex items-center space-x-4 mb-8 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                <img src={property.agent.image} alt={property.agent.name} className="w-20 h-20 rounded-2xl object-cover shadow-lg shadow-gray-200" />
+                <img src={getImageUrl(property.agent?.image)} alt={property.agent?.name} className="w-20 h-20 rounded-2xl object-cover shadow-lg shadow-gray-200" />
                 <div>
-                  <h4 className="text-lg font-bold text-gray-900 leading-tight">{property.agent.name}</h4>
-                  <p className="text-sm text-gray-500 mb-1 font-medium italic">Premium Realtor</p>
-                  <div className="flex items-center text-yellow-500 text-sm font-bold">
-                    <FiStar className="fill-current mr-1" />
-                    <span>{property.agent.rating} / 5</span>
-                  </div>
+                  <h4 className="text-lg font-bold text-gray-900 leading-tight">{property.agent?.name || 'Authorized Agent'}</h4>
+                  <p className="text-sm text-gray-500 mb-1 font-medium italic">{property.agent?.company || 'Premium Realtor'}</p>
                 </div>
               </div>
 
@@ -320,16 +396,58 @@ const PropertyDetail = () => {
                 </div>
               </div>
 
-              <form className="space-y-4">
+              <form id="inquiry-form" onSubmit={handleInquirySubmit} className="space-y-4">
                 <div className="relative">
-                  <input type="text" placeholder="Full Name" className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Full Name" 
+                    required
+                    value={inquiryForm.name}
+                    onChange={(e) => setInquiryForm({...inquiryForm, name: e.target.value})}
+                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400" 
+                  />
                 </div>
                 <div className="relative">
-                  <input type="email" placeholder="Email Address" className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400" />
+                  <input 
+                    type="email" 
+                    placeholder="Email Address" 
+                    required
+                    value={inquiryForm.email}
+                    onChange={(e) => setInquiryForm({...inquiryForm, email: e.target.value})}
+                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400" 
+                  />
                 </div>
-                <textarea placeholder="How can we help?" rows="4" className="w-full px-4 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400 resize-none"></textarea>
-                <button type="submit" className="w-full py-4 gradient-primary text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
-                  Send Inquiry Now
+                <div className="relative">
+                  <input 
+                    type="tel" 
+                    placeholder="Phone Number" 
+                    required
+                    value={inquiryForm.phone}
+                    onChange={(e) => setInquiryForm({...inquiryForm, phone: e.target.value})}
+                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400" 
+                  />
+                </div>
+                <textarea 
+                  placeholder="How can we help?" 
+                  rows="4" 
+                  required
+                  value={inquiryForm.message}
+                  onChange={(e) => setInquiryForm({...inquiryForm, message: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-primary/20 outline-none font-medium placeholder:text-gray-400 resize-none"
+                ></textarea>
+                <button 
+                  type="submit" 
+                  disabled={inquiryLoading}
+                  className="w-full py-4 gradient-primary text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  {inquiryLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <span>Send Inquiry Now</span>
+                  )}
                 </button>
               </form>
             </div>
@@ -350,27 +468,28 @@ const PropertyDetail = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
-            {[
-              { title: 'Sunset Penthouse', price: '950,000', loc: 'Los Angeles, CA', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600' },
-              { title: 'Oakwood Estate', price: '2,100,000', loc: 'Malibu, CA', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600' },
-              { title: 'Azure Beach House', price: '1,450,000', loc: 'Santa Monica, CA', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600' }
-            ].map((prop, idx) => (
-              <div key={idx} className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-colors">
+            {similarProperties.map((prop, idx) => (
+              <Link key={prop._id} to={`/property/${prop._id}`} className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-colors">
                 <div className="h-48 overflow-hidden">
-                  <img src={prop.img} alt={prop.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <img src={getImageUrl(prop.images?.[0])} alt={prop.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 </div>
                 <div className="p-6">
                   <h4 className="text-lg font-bold text-white mb-1">{prop.title}</h4>
                   <p className="text-sm text-gray-500 mb-4 flex items-center">
-                    <FiMapPin className="mr-1" /> {prop.loc}
+                    <FiMapPin className="mr-1" /> {prop.city}, {prop.location}
                   </p>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-primary font-black">${prop.price}</span>
+                    <span className="text-primary font-black">{formatCurrency(prop.price)}</span>
                     <button className="text-white font-bold opacity-0 group-hover:opacity-100 transition-opacity">View Details →</button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
+            {similarProperties.length === 0 && (
+              <div className="col-span-full py-20 text-center text-gray-500 font-bold border border-dashed border-white/10 rounded-3xl">
+                No similar listings found in this area.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -401,7 +520,7 @@ const PropertyDetail = () => {
             </button>
             
             <img 
-              src={property.images[currentImageIndex]} 
+              src={getImageUrl(property.images?.[currentImageIndex])} 
               alt="Gallery Full" 
               className="max-w-full max-h-full object-contain rounded-lg animate-scale-in shadow-2xl"
             />
@@ -424,7 +543,7 @@ const PropertyDetail = () => {
                   currentImageIndex === idx ? 'border-primary scale-110 shadow-lg' : 'border-transparent opacity-50 hover:opacity-100'
                 }`}
               >
-                <img src={img} alt="Thumb" className="w-full h-full object-cover" />
+                <img src={getImageUrl(img)} alt="Thumb" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

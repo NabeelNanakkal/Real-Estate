@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { partnerService } from '../../services/api';
 
 const Partners = () => {
-  const partners = [
+  const [partners, setPartners] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const defaultPartners = [
     { name: 'TechHome', icon: '🏠' },
     { name: 'EcoBuild', icon: '🌿' },
     { name: 'UrbanDesign', icon: '🏙️' },
@@ -11,6 +15,38 @@ const Partners = () => {
     { name: 'SkyHigh', icon: '☁️' },
     { name: 'ModernEst', icon: '🏢' },
   ];
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const { data } = await partnerService.getPartners();
+        if (data.success && data.data.length > 0) {
+          setPartners(data.data);
+        } else {
+          setPartners(defaultPartners);
+        }
+      } catch (err) {
+        console.error('Error fetching partners:', err);
+        setPartners(defaultPartners);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPartners();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-16 bg-white animate-pulse">
+        <div className="container-custom flex justify-center space-x-8">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="h-10 w-32 bg-gray-100 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-16 bg-white border-b border-gray-100 overflow-hidden relative">

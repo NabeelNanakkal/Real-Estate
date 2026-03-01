@@ -1,88 +1,90 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { FiFilter, FiGrid, FiList, FiMapPin, FiMaximize2, FiSearch, FiCheck } from 'react-icons/fi';
-import { FaBath, FaBed } from 'react-icons/fa';
+import { FiSearch, FiFilter, FiMapPin, FiHome, FiMaximize2, FiGrid, FiList, FiChevronRight } from 'react-icons/fi';
+import { FaBed, FaBath } from 'react-icons/fa';
+import { propertyService } from '../services/api';
+import EmptyState from '../components/common/EmptyState';
+import { getImageUrl } from '../utils/imageUtils';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 const PropertyList = () => {
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('grid');
   const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    limit: 10
+  });
 
-  // Mock data - will be replaced with API call
+  // Filter state
+  const [filters, setFilters] = useState({
+    type: searchParams.get('type') || '',
+    bedrooms: searchParams.get('bedrooms') || '',
+    city: searchParams.get('city') || '',
+    minPrice: '',
+    maxPrice: '',
+    propertyType: []
+  });
+
+  const fetchProperties = async (page = 1) => {
+    try {
+      setLoading(true);
+      const params = {
+        type: filters.type || undefined,
+        bedrooms: filters.bedrooms || undefined,
+        city: filters.city || undefined,
+        minPrice: filters.minPrice || undefined,
+        maxPrice: filters.maxPrice || undefined,
+        propertyType: filters.propertyType.length > 0 ? filters.propertyType.join(',') : undefined,
+        page: page,
+        limit: 10
+      };
+      
+      const { data } = await propertyService.getProperties(params);
+      if (data.success) {
+        setProperties(data.data);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.pages,
+          totalCount: data.pagination.total,
+          limit: data.pagination.limit
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching properties:', err);
+      setError('Failed to load properties from database.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockProperties = [
-      {
-        id: 1,
-        title: 'Modern Luxury Villa',
-        location: 'Beverly Hills, CA',
-        price: 1250000,
-        bedrooms: 4,
-        bathrooms: 3,
-        area: 3500,
-        image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-        type: 'sale',
-        propertyType: 'villa',
-        badge: 'Featured',
-        agent: {
-          name: 'Sarah Jen',
-          image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'
-        }
-      },
-      {
-        id: 2,
-        title: 'Downtown Apartment',
-        location: 'Manhattan, NY',
-        price: 850000,
-        bedrooms: 2,
-        bathrooms: 2,
-        area: 1200,
-        image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-        type: 'sale',
-        propertyType: 'apartment',
-        badge: 'New',
-        agent: {
-          name: 'Mike Ross',
-          image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100'
-        }
-      },
-      {
-        id: 3,
-        title: 'Beachfront Condo',
-        location: 'Miami, FL',
-        price: 2100000,
-        bedrooms: 3,
-        bathrooms: 3,
-        area: 2500,
-        image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-        type: 'sale',
-        propertyType: 'condo',
-        badge: 'Hot',
-        agent: {
-          name: 'Emily Chen',
-          image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100'
-        }
-      },
-      {
-        id: 4,
-        title: 'Country Cottage',
-        location: 'Austin, TX',
-        price: 450000,
-        bedrooms: 3,
-        bathrooms: 2,
-        area: 1800,
-        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
-        type: 'sale',
-        propertyType: 'house',
-        badge: '',
-        agent: {
-          name: 'David Kim',
-          image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'
-        }
-      },
-      // Add more mock properties as needed
-    ];
-    setProperties(mockProperties);
-  }, [searchParams]);
+    fetchProperties(1);
+  }, [filters.type, filters.bedrooms, filters.city]); // Initial load and URL param changes
+
+  const handleApplyFilters = () => {
+    fetchProperties(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    fetchProperties(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const togglePropertyType = (type) => {
+    setFilters(prev => ({
+      ...prev,
+      propertyType: prev.propertyType.includes(type.toLowerCase())
+        ? prev.propertyType.filter(t => t !== type.toLowerCase())
+        : [...prev.propertyType, type.toLowerCase()]
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -128,6 +130,8 @@ const PropertyList = () => {
                   <input 
                     type="text" 
                     placeholder="Search location..." 
+                    value={filters.city}
+                    onChange={(e) => setFilters({...filters, city: e.target.value})}
                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
@@ -137,9 +141,21 @@ const PropertyList = () => {
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Price Range</label>
                 <div className="flex items-center space-x-2">
-                  <input type="number" placeholder="Min" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" />
+                  <input 
+                    type="number" 
+                    placeholder="Min" 
+                    value={filters.minPrice}
+                    onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" 
+                  />
                   <span className="text-gray-400">-</span>
-                  <input type="number" placeholder="Max" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" />
+                  <input 
+                    type="number" 
+                    placeholder="Max" 
+                    value={filters.maxPrice}
+                    onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" 
+                  />
                 </div>
               </div>
 
@@ -148,7 +164,15 @@ const PropertyList = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Bedrooms</label>
                 <div className="flex flex-wrap gap-2">
                   {['Any', '1', '2', '3', '4+'].map((num) => (
-                    <button key={num} className={`px-3 py-1.5 text-sm rounded-full border transition-all ${num === 'Any' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary'}`}>
+                    <button 
+                      key={num} 
+                      onClick={() => setFilters({...filters, bedrooms: num === 'Any' ? '' : num.replace('+', '')})}
+                      className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
+                        (num === 'Any' && !filters.bedrooms) || (filters.bedrooms === num.replace('+', '')) 
+                          ? 'bg-primary text-white border-primary' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary'
+                      }`}
+                    >
                       {num}
                     </button>
                   ))}
@@ -160,17 +184,26 @@ const PropertyList = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Property Type</label>
                 <div className="space-y-2">
                   {['House', 'Apartment', 'Condo', 'Villa'].map((type) => (
-                    <label key={type} className="flex items-center space-x-2 cursor-pointer group">
-                      <div className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center group-hover:border-primary transition-colors">
-                        {/* Checkbox state logic would go here */}
+                    <label key={type} className="flex items-center space-x-2 cursor-pointer group" onClick={() => togglePropertyType(type)}>
+                      <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+                        filters.propertyType.includes(type.toLowerCase()) ? 'bg-primary border-primary' : 'border-gray-300 group-hover:border-primary'
+                      }`}>
+                        {filters.propertyType.includes(type.toLowerCase()) && (
+                           <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                           </svg>
+                        )}
                       </div>
-                      <span className="text-gray-600 group-hover:text-gray-900 transition-colors">{type}</span>
+                      <span className={`text-gray-600 group-hover:text-gray-900 transition-colors ${filters.propertyType.includes(type.toLowerCase()) ? 'text-gray-900 font-medium' : ''}`}>{type}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <button className="btn-primary w-full py-3 shadow-lg shadow-primary/30">
+              <button 
+                onClick={handleApplyFilters}
+                className="btn-primary w-full py-3 shadow-lg shadow-primary/30"
+              >
                 Apply Filters
               </button>
             </div>
@@ -210,16 +243,17 @@ const PropertyList = () => {
             </div>
 
             {/* Properties */}
-            <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'} gap-8`}>
+            {properties.length > 0 ? (
+              <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'} gap-8`}>
               {properties.map((property) => (
                 <Link
-                  key={property.id}
-                  to={`/property/${property.id}`}
+                  key={property._id}
+                  to={`/property/${property._id}`}
                   className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 flex flex-col"
                 >
                   <div className="relative h-64 overflow-hidden">
                     <img
-                      src={property.image}
+                      src={getImageUrl(property.images?.[0])}
                       alt={property.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
@@ -227,13 +261,13 @@ const PropertyList = () => {
                     
                     {/* Badges */}
                     <div className="absolute top-4 left-4 flex gap-2">
-                       {property.badge && (
+                       {property.featured && (
                         <span className="px-3 py-1 bg-primary text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg">
-                          {property.badge}
+                          Featured
                         </span>
                        )}
                        <span className="px-3 py-1 bg-white/90 backdrop-blur-md text-gray-900 text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg">
-                         {property.type}
+                         {property.propertyType}
                        </span>
                     </div>
 
@@ -249,14 +283,14 @@ const PropertyList = () => {
                       <div>
                         <div className="flex items-center text-gray-500 text-sm mb-1">
                           <FiMapPin className="w-4 h-4 mr-1 text-primary" />
-                          {property.location}
+                          {property.city}, {property.location}
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">
                           {property.title}
                         </h3>
                       </div>
                       <div className="text-xl font-bold text-primary">
-                        ${property.price.toLocaleString()}
+                        {formatCurrency(property.price)}
                       </div>
                     </div>
 
@@ -279,15 +313,61 @@ const PropertyList = () => {
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center space-x-2">
-                        <img src={property.agent.image} alt={property.agent.name} className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover" />
-                        <span className="text-sm text-gray-600 font-medium">Listed by {property.agent.name}</span>
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                          {property.agent?.avatar ? (
+                            <img src={property.agent.avatar} alt={property.agent.name} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            <FiHome className="text-gray-400 w-4 h-4" />
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-600 font-medium">Listed by {property.agent?.name || 'Agent'}</span>
                       </div>
-                      <span className="text-xs text-gray-400">2 days ago</span>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(property.createdAt)}
+                      </span>
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
+        ) : (
+          <EmptyState />
+        )}
+
+        {/* Pagination UI - Always at bottom */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-12 flex justify-center items-center space-x-2 w-full">
+            <button
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={pagination.currentPage === 1}
+              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+            >
+              Previous
+            </button>
+            
+            {[...Array(pagination.totalPages)].map((_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => handlePageChange(i + 1)}
+                className={`w-10 h-10 rounded-lg border transition-all font-bold ${
+                  pagination.currentPage === i + 1
+                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={pagination.currentPage === pagination.totalPages}
+              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+            >
+              Next
+            </button>
+          </div>
+        )}
           </div>
         </div>
       </div>

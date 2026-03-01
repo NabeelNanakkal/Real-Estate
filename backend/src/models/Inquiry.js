@@ -30,6 +30,17 @@ const inquirySchema = new mongoose.Schema({
     type: String,
     enum: ['new', 'contacted', 'closed'],
     default: 'new'
+  },
+  crmSyncStatus: {
+    type: String,
+    enum: ['pending', 'success', 'failed'],
+    default: 'pending'
+  },
+  crmContactId: {
+    type: String
+  },
+  crmError: {
+    type: String
   }
 }, {
   timestamps: true
