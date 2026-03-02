@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer';
 import MouseSpotlight from './components/layout/MouseSpotlight';
 import { ROUTES } from './constants/routes';
 import { PROTECTED_ROLES } from './constants/roles';
+import { AuthProvider } from './context/AuthContext';
 
 const Home           = lazy(() => import('./pages/Home'));
 const PropertyList   = lazy(() => import('./pages/PropertyList'));
@@ -43,28 +44,30 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <Router>
-      <Toaster position="top-right" reverseOrder={false} />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route
-            path={`${ROUTES.DASHBOARD}/*`}
-            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
-          />
+    <AuthProvider>
+      <Router>
+        <Toaster position="top-right" reverseOrder={false} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route
+              path={`${ROUTES.DASHBOARD}/*`}
+              element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+            />
 
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+            <Route path="/login"    element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          <Route element={<PublicLayout />}>
-            <Route path={ROUTES.HOME}       element={<Home />} />
-            <Route path={ROUTES.ABOUT}      element={<About />} />
-            <Route path={ROUTES.PROPERTIES} element={<PropertyList />} />
-            <Route path="/property/:id"     element={<PropertyDetail />} />
-            <Route path={ROUTES.CONTACT}    element={<Contact />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </Router>
+            <Route element={<PublicLayout />}>
+              <Route path={ROUTES.HOME}       element={<Home />} />
+              <Route path={ROUTES.ABOUT}      element={<About />} />
+              <Route path={ROUTES.PROPERTIES} element={<PropertyList />} />
+              <Route path="/property/:id"     element={<PropertyDetail />} />
+              <Route path={ROUTES.CONTACT}    element={<Contact />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </Router>
+    </AuthProvider>
   );
 }
 

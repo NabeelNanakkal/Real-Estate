@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiPlus, FiTrash2, FiEdit2, FiMessageCircle, FiUser, FiStar, FiUpload, FiCheck, FiX, FiCamera } from 'react-icons/fi';
-import { testimonialService } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUtils';
 import toast from 'react-hot-toast';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import {
+  fetchTestimonials,
+  addTestimonial,
+  updateTestimonial,
+  deleteTestimonial,
+  resetTestimonialMutation,
+} from '../../store/slices/testimonialSlice';
 
 const MAX_CONTENT = 300;
 
@@ -27,29 +34,31 @@ const StarPicker = ({ value, onChange }) => (
 );
 
 const TestimonialManagement = () => {
-  const [testimonials, setTestimonials] = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [saving, setSaving]             = useState(false);
+  const dispatch = useDispatch();
+  const { list: testimonials, loading, mutationLoading: saving, mutationSuccess, mutationError } = useSelector(s => s.testimonial);
+
   const [editingId, setEditingId]       = useState(null);
   const [form, setForm]                 = useState(EMPTY_FORM);
-  const [imageFile, setImageFile]       = useState(null);    // File object
-  const [imagePreview, setImagePreview] = useState('');      // preview URL
+  const [imageFile, setImageFile]       = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [deleteModal, setDeleteModal]   = useState({ isOpen: false, id: null });
   const fileInputRef = useRef(null);
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    dispatch(fetchTestimonials({ all: true }));
+  }, [dispatch]);
 
-  const fetchAll = async () => {
-    try {
-      setLoading(true);
-      const { data } = await testimonialService.getTestimonials(true);
-      if (data.success) setTestimonials(data.data);
-    } catch {
-      toast.error('Failed to load testimonials');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (mutationSuccess) {
+      toast.success(editingId ? 'Testimonial updated!' : 'Testimonial saved!');
+      cancelEdit();
+      dispatch(resetTestimonialMutation());
     }
-  };
+    if (mutationError) {
+      toast.error(mutationError);
+      dispatch(resetTestimonialMutation());
+    }
+  }, [mutationSuccess, mutationError, dispatch]); // eslint-disable-line
 
   const setField = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -91,65 +100,32 @@ const TestimonialManagement = () => {
     return fd;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.role.trim() || !form.content.trim()) {
       toast.error('Name, role and content are required');
       return;
     }
-    try {
-      setSaving(true);
-      const fd = buildFormData();
-
-      if (editingId) {
-        const { data } = await testimonialService.updateTestimonial(editingId, fd);
-        if (data.success) {
-          setTestimonials((prev) => prev.map((t) => (t._id === editingId ? data.data : t)));
-          toast.success('Testimonial updated!');
-          cancelEdit();
-        }
-      } else {
-        const { data } = await testimonialService.addTestimonial(fd);
-        if (data.success) {
-          setTestimonials([data.data, ...testimonials]);
-          setForm(EMPTY_FORM);
-          clearImage();
-          toast.success('Testimonial added!');
-        }
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Error saving testimonial');
-    } finally {
-      setSaving(false);
+    const fd = buildFormData();
+    if (editingId) {
+      dispatch(updateTestimonial({ id: editingId, data: fd }));
+    } else {
+      dispatch(addTestimonial(fd));
     }
   };
 
-  const toggleActive = async (t) => {
-    try {
-      const { data } = await testimonialService.updateTestimonial(t._id, { isActive: !t.isActive });
-      if (data.success) {
-        setTestimonials((prev) => prev.map((x) => (x._id === t._id ? data.data : x)));
-        toast.success(data.data.isActive ? 'Testimonial visible on site' : 'Testimonial hidden from site');
-      }
-    } catch {
-      toast.error('Failed to update visibility');
-    }
+  const toggleActive = (t) => {
+    const fd = new FormData();
+    fd.append('isActive', !t.isActive);
+    dispatch(updateTestimonial({ id: t._id, data: fd }));
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     const { id } = deleteModal;
-    try {
-      const { data } = await testimonialService.deleteTestimonial(id);
-      if (data.success) {
-        setTestimonials((prev) => prev.filter((t) => t._id !== id));
-        if (editingId === id) cancelEdit();
-        toast.success('Testimonial deleted');
-      }
-    } catch {
-      toast.error('Error deleting testimonial');
-    } finally {
-      setDeleteModal({ isOpen: false, id: null });
-    }
+    if (editingId === id) cancelEdit();
+    dispatch(deleteTestimonial(id));
+    toast.success('Testimonial deleted');
+    setDeleteModal({ isOpen: false, id: null });
   };
 
   if (loading) return <div className="p-10 text-center font-bold text-gray-400">Loading Testimonials...</div>;

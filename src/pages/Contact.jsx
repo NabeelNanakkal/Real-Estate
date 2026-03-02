@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiMail, FiPhone, FiMapPin, FiSend, FiClock, FiStar, FiGlobe, FiAtSign, FiChevronDown, FiCheckCircle } from 'react-icons/fi';
-import { contactService } from '../services/api';
+import { fetchContactContent } from '../store/slices/contactSlice';
 
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +26,9 @@ const FAQItem = ({ question, answer }) => {
 };
 
 const Contact = () => {
+  const dispatch = useDispatch();
+  const { content, loading } = useSelector(s => s.contact);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,25 +37,10 @@ const Contact = () => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [content, setContent] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data } = await contactService.getContactContent();
-        if (data.success && data.data) {
-          setContent(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching contact content:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContent();
-  }, []);
+    dispatch(fetchContactContent());
+  }, [dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -177,7 +166,7 @@ const Contact = () => {
             <div className="mt-16 bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm">
               <h3 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Common Inquiries</h3>
               <div className="space-y-2">
-                {activeContent.faqs.map((faq, index) => (
+                {(activeContent.faqs || []).map((faq, index) => (
                   <FAQItem key={index} {...faq} />
                 ))}
               </div>
@@ -309,7 +298,7 @@ const Contact = () => {
           
           <div className="relative h-[600px] rounded-[60px] overflow-hidden border-[15px] border-white/5 shadow-2xl animate-fade-in-up group">
             <iframe 
-              src={activeContent.mapUrl} 
+              src={activeContent.mapUrl || ''} 
               width="100%" 
               height="100%" 
               style={{ border: 0 }} 

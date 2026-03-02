@@ -72,7 +72,14 @@ const AboutManagement = () => {
       setLoading(true);
       const { data } = await aboutService.getAboutContent();
       if (data.success) {
-        setContent(data.data);
+        const d = data.data || {};
+        setContent({
+          hero: { title: '', subtitle: '', image: '', ...(d.hero || {}) },
+          mission: { title: '', description: '', image: '', points: [], ...(d.mission || {}) },
+          stats: d.stats || [],
+          values: d.values || [],
+          team: d.team || []
+        });
         setHeroPreview(getImageUrl(data.data.hero?.image) || '');
         setMissionPreview(getImageUrl(data.data.mission?.image) || '');
         
@@ -108,7 +115,14 @@ const AboutManagement = () => {
 
       const { data } = await aboutService.updateAboutContent(fd);
       if (data.success) {
-        setContent(data.data);
+        const d = data.data || {};
+        setContent({
+          hero: { title: '', subtitle: '', image: '', ...(d.hero || {}) },
+          mission: { title: '', description: '', image: '', points: [], ...(d.mission || {}) },
+          stats: d.stats || [],
+          values: d.values || [],
+          team: d.team || []
+        });
         
         // Only reset hero file if it wasn't overridden, or handle it based on new state properly
         if (overrideHeroFile === undefined) {

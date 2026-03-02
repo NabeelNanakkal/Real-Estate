@@ -1,38 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiMaximize2 } from 'react-icons/fi';
 import { FaBath, FaBed } from 'react-icons/fa';
-import { propertyService } from '../../services/api';
+import { fetchFeaturedProperties } from '../../store/slices/propertySlice';
 import { getImageUrl } from '../../utils/imageUtils';
 
 const FeaturedProperties = () => {
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { featured: properties, featuredLoading: loading } = useSelector(s => s.property);
 
   useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        setLoading(true);
-        // We fetch with featured: true first
-        const { data } = await propertyService.getProperties({ featured: true });
-        if (data.success && data.data.length > 0) {
-          setProperties(data.data.slice(0, 4));
-        } else {
-          // Fallback to latest 4 if no featured marked
-          const { data: latestData } = await propertyService.getProperties();
-          if (latestData.success) {
-            setProperties(latestData.data.slice(0, 4));
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching featured properties:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFeatured();
-  }, []);
+    dispatch(fetchFeaturedProperties());
+  }, [dispatch]);
 
   if (loading) {
     return (

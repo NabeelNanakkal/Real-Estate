@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FiHome, FiPlus, FiList, FiBarChart2, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight, FiMoreVertical } from 'react-icons/fi';
+import { FiHome, FiList, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageUtils';
 import DashboardHome from '../components/dashboard/DashboardHome';
 import PropertyManagement from '../components/dashboard/PropertyManagement';
 import AddProperty from '../components/dashboard/AddProperty';
@@ -15,6 +17,7 @@ import TestimonialManagement from '../components/dashboard/TestimonialManagement
 import LogoutConfirmModal from '../components/dashboard/LogoutConfirmModal';
 
 const Dashboard = () => {
+  const { user, logout } = useAuth();
   const location = useLocation();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
   const [isSidebarMinimized, setIsSidebarMinimized] = React.useState(false);
@@ -62,7 +65,6 @@ const Dashboard = () => {
   const menuItems = [
     { path: '/dashboard', icon: FiHome, label: 'Overview', exact: true },
     { path: '/dashboard/properties', icon: FiList, label: 'Properties' },
-    { path: '/dashboard/analytics', icon: FiBarChart2, label: 'Analytics' },
     { path: '/dashboard/inquiries', icon: FiMail, label: 'Inquiries' },
     { path: '/dashboard/about', icon: FiInfo, label: 'About Page' },
     { path: '/dashboard/partners', icon: FiBriefcase, label: 'Partners' },
@@ -100,19 +102,26 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className={`p-6 flex flex-col h-full relative overflow-y-auto overflow-x-hidden custom-scrollbar ${isSidebarMinimized ? 'items-center px-4' : ''}`}>
+          <div className={`p-6 flex flex-col h-full relative ${isSidebarMinimized ? 'items-center px-4' : ''}`}>
             {/* Sidebar Glow Effect */}
             <div className="absolute -top-24 -left-24 w-60 h-60 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
             
             
             <div className={`mb-10 relative flex flex-col ${isSidebarMinimized ? 'items-center' : ''}`}>
               <div className={`flex items-center ${isSidebarMinimized ? 'justify-center' : 'space-x-3 w-full'}`}>
-                <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0">
-                  <span className="text-white font-black text-lg">E</span>
-                </div>
+                {user?.companyLogo ? (
+                   <div className="w-12 h-12 flex items-center justify-center flex-shrink-0 p-1">
+                     <img src={getImageUrl(user.companyLogo)} alt="Logo" className="w-full h-full object-contain" />
+                   </div>
+                ) : (
+                  <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0">
+                    <span className="text-white font-black text-lg">{user?.company?.charAt(0) || 'E'}</span>
+                  </div>
+                )}
+
                 {!isSidebarMinimized && (
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-black text-white tracking-tight uppercase truncate">EstateHub</h2>
+                    <h2 className="text-lg font-black text-white tracking-tight uppercase truncate">{user?.company || 'EstateHub'}</h2>
                     <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] -mt-0.5">Admin Dashboard</p>
                   </div>
                 )}
@@ -129,7 +138,7 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <nav className="flex-1 space-y-2 relative">
+            <nav className="flex-1 space-y-2 relative overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-4">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path, item.exact);
@@ -220,11 +229,7 @@ const Dashboard = () => {
       <LogoutConfirmModal 
         isOpen={isLogoutModalOpen} 
         onClose={() => setIsLogoutModalOpen(false)}
-        onConfirm={() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
-        }}
+        onConfirm={logout}
       />
     </div>
   );

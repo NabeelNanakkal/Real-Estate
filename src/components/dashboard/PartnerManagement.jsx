@@ -1,74 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiBriefcase, FiLink } from 'react-icons/fi';
-import { partnerService } from '../../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { FiPlus, FiTrash2, FiBriefcase, FiUpload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import { getImageUrl } from '../../utils/imageUtils';
+import {
+  fetchPartners,
+  addPartner,
+  deletePartner,
+  resetPartnerMutation,
+} from '../../store/slices/partnerSlice';
 
 const PartnerManagement = () => {
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
-  const [newPartner, setNewPartner] = useState({ name: '', icon: '' });
+  const dispatch = useDispatch();
+  const { list: partners, loading, mutationLoading: adding, mutationSuccess, mutationError } = useSelector(s => s.partner);
+
+  const [newPartner, setNewPartner] = useState({ name: '' });
+  const [iconFile, setIconFile] = useState(null);
+  const [iconPreview, setIconPreview] = useState(null);
+  const fileInputRef = useRef(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
 
   useEffect(() => {
-    fetchPartners();
-  }, []);
+    dispatch(fetchPartners());
+  }, [dispatch]);
 
-  const fetchPartners = async () => {
-    try {
-      setLoading(true);
-      const { data } = await partnerService.getPartners();
-      if (data.success) {
-        setPartners(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching partners:', error);
-      toast.error('Failed to load partners');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (mutationSuccess) {
+      toast.success('Operation completed successfully!');
+      setNewPartner({ name: '' });
+      setIconFile(null);
+      setIconPreview(null);
+      dispatch(resetPartnerMutation());
     }
+    if (mutationError) {
+      toast.error(mutationError);
+      dispatch(resetPartnerMutation());
+    }
+  }, [mutationSuccess, mutationError, dispatch]);
+
+  const handleIconChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check if the file is an SVG
+    if (file.type !== 'image/svg+xml' && !file.name.toLowerCase().endsWith('.svg')) {
+      toast.error('Only SVG logo files are allowed for partners.');
+      fileInputRef.current.value = '';
+      return;
+    }
+
+    setIconFile(file);
+    setIconPreview(URL.createObjectURL(file));
   };
 
-  const handleAddPartner = async (e) => {
+  const handleAddPartner = (e) => {
     e.preventDefault();
-    if (!newPartner.name || !newPartner.icon) {
-        toast.error('Please fill in all fields');
-        return;
+    if (!newPartner.name || !iconFile) {
+      toast.error('Please fill in all fields and select a logo');
+      return;
     }
-    
-    try {
-      setAdding(true);
-      const { data } = await partnerService.addPartner(newPartner);
-      if (data.success) {
-        setPartners([data.data, ...partners]);
-        setNewPartner({ name: '', icon: '' });
-        toast.success('Partner added successfully!');
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Error adding partner');
-    } finally {
-      setAdding(false);
-    }
+    const fd = new FormData();
+    fd.append('name', newPartner.name);
+    fd.append('icon', iconFile);
+    dispatch(addPartner(fd));
   };
 
   const handleDeleteClick = (id) => {
     setDeleteModal({ isOpen: true, id });
   };
 
-  const confirmDelete = async () => {
-    const { id } = deleteModal;
-    try {
-      const { data } = await partnerService.deletePartner(id);
-      if (data.success) {
-        setPartners(partners.filter(p => p._id !== id));
-        toast.success('Partner deleted successfully!');
-      }
-    } catch (error) {
-      toast.error('Error deleting partner');
-    } finally {
-      setDeleteModal({ isOpen: false, id: null });
-    }
+  const confirmDelete = () => {
+    dispatch(deletePartner(deleteModal.id));
+    toast.success('Partner deleted successfully!');
+    setDeleteModal({ isOpen: false, id: null });
   };
 
   if (loading) return <div className="p-10 text-center font-bold text-gray-400">Loading Partners...</div>;
@@ -109,17 +114,33 @@ const PartnerManagement = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">Icon or Emoji</label>
-                <div className="relative">
-                  <FiLink className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="e.g. 🏢 or brand_logo.png"
-                    value={newPartner.icon}
-                    onChange={(e) => setNewPartner({ ...newPartner, icon: e.target.value })}
-                    className="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px]"
-                  />
+                <div className="flex justify-between items-baseline">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">Partner Logo</label>
+                  <span className="text-[9px] font-bold text-slate-400 mr-2 uppercase">Only SVG Supported</span>
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".svg,image/svg+xml"
+                  onChange={handleIconChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all group"
+                >
+                  {iconPreview ? (
+                    <img src={iconPreview} alt="preview" className="w-10 h-10 rounded-lg object-contain bg-white border border-slate-100" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300">
+                      <FiUpload className="w-4 h-4" />
+                    </div>
+                  )}
+                  <span className="font-bold text-[13px] text-slate-400 group-hover:text-slate-600 transition-colors">
+                    {iconFile ? iconFile.name : 'Click to upload logo'}
+                  </span>
+                </button>
               </div>
               <button
                 type="submit"
@@ -141,8 +162,8 @@ const PartnerManagement = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/5 transition-colors duration-700"></div>
                     
                     <div className="flex items-center space-x-5 relative">
-                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform duration-500">
-                          {partner.icon}
+                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 overflow-hidden p-2">
+                          <img src={getImageUrl(partner.icon)} alt={partner.name} className="w-full h-full object-contain" />
                         </div>
                         <div>
                           <h3 className="text-lg font-black text-slate-900 tracking-tight">{partner.name}</h3>

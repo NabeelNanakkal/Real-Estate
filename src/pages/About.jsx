@@ -1,28 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiCheck, FiUsers, FiTarget, FiAward } from 'react-icons/fi';
 import * as Icons from 'react-icons/fi';
 import Counter from '../components/common/Counter';
-import { aboutService } from '../services/api';
+import { fetchAboutContent } from '../store/slices/aboutSlice';
 
 const About = () => {
-  const [content, setContent] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { content, loading } = useSelector(s => s.about);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data } = await aboutService.getAboutContent();
-        if (data.success) {
-          setContent(data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching about content:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContent();
-  }, []);
+    dispatch(fetchAboutContent());
+  }, [dispatch]);
 
   if (loading) {
     return (
@@ -46,7 +35,7 @@ const About = () => {
       <div className="relative pt-32 pb-20 bg-gray-900 overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src={content.hero.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600"} 
+            src={content?.hero?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600"} 
             alt="Office" 
             className="w-full h-full object-cover opacity-20"
           />
@@ -54,10 +43,10 @@ const About = () => {
         </div>
         <div className="container-custom relative z-10 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in-up">
-            {content.hero.title}
+            {content?.hero?.title || 'About Us'}
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto animate-fade-in-up delay-100">
-            {content.hero.subtitle}
+            {content?.hero?.subtitle || 'Learn more about our company'}
           </p>
         </div>
       </div>
@@ -68,7 +57,7 @@ const About = () => {
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2 animate-fade-in-up">
               <img 
-                src={content.mission.image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800"} 
+                src={content?.mission?.image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800"} 
                 alt="Meeting" 
                 className="rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
               />
@@ -79,13 +68,13 @@ const About = () => {
                 <span className="text-primary font-bold uppercase tracking-wider">Our Mission</span>
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                {content.mission.title.split(' ').slice(0, -2).join(' ')} <span className="text-primary">{content.mission.title.split(' ').slice(-2).join(' ')}</span>
+                {(content?.mission?.title || 'Our Mission').split(' ').slice(0, -2).join(' ')} <span className="text-primary">{(content?.mission?.title || 'Our Mission').split(' ').slice(-2).join(' ')}</span>
               </h2>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                {content.mission.description}
+                {content?.mission?.description}
               </p>
               <ul className="space-y-4">
-                {content.mission.points.map((item, index) => (
+                {(content?.mission?.points || []).map((item, index) => (
                   <li key={index} className="flex items-center space-x-3 group cursor-default">
                     <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                       <FiCheck className="w-4 h-4" />
@@ -103,7 +92,7 @@ const About = () => {
       <section className="py-16 gradient-primary text-white">
         <div className="container-custom">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {content.stats.map((stat, index) => (
+            {(content?.stats || []).map((stat, index) => (
               <div key={index} className="text-center group animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="text-4xl md:text-5xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300">
                   <Counter end={stat.value} suffix={stat.suffix} />
@@ -123,7 +112,7 @@ const About = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Why Choose Us</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {content.values.map((value, index) => {
+            {(content?.values || []).map((value, index) => {
               const Icon = valueIcons[value.iconKey] || FiAward;
               return (
                 <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
@@ -147,7 +136,7 @@ const About = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Meet The Experts</h2>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
-            {content.team.map((member, index) => (
+            {(content?.team || []).map((member, index) => (
               <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="relative overflow-hidden rounded-2xl mb-6 shadow-lg">
                   <img 

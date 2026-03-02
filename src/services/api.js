@@ -44,13 +44,16 @@ export const inquiryService = {
 };
 
 export const authService = {
-  login:    (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  getMe:    ()     => api.get('/auth/me'),
+  login:            (data) => api.post('/auth/login', data),
+  register:         (data) => api.post('/auth/register', data),
+  getMe:            ()     => api.get('/auth/me'),
+  getPublicProfile: ()     => api.get('/auth/public-profile'),
 };
 
 export const userService = {
   updatePreferences: (data) => api.put('/auth/preferences', data),
+  updateProfile:     (data) => api.put('/auth/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  updatePassword:    (data) => api.put('/auth/password', data),
 };
 
 export const aboutService = {

@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
 import { categoryService, contactService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const Footer = () => {
+  const { user, publicProfile } = useAuth();
+  const activeProfile = user || publicProfile;
   const [categories, setCategories] = React.useState([]);
   const [contactInfo, setContactInfo] = React.useState(null);
 
@@ -30,10 +33,16 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">E</span>
-              </div>
-              <span className="text-2xl font-bold">EstateHub</span>
+              {activeProfile?.companyLogo ? (
+                <div className="w-12 h-12 flex items-center justify-center p-1">
+                   <img src={activeProfile.companyLogo.startsWith('http') ? activeProfile.companyLogo : `http://localhost:5000${activeProfile.companyLogo}`} alt="Logo" className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">{activeProfile?.company?.charAt(0) || 'E'}</span>
+                </div>
+              )}
+              <span className="text-2xl font-bold">{activeProfile?.company || 'EstateHub'}</span>
             </div>
             <p className="text-gray-400 mb-4">
               Your trusted partner in finding the perfect property. Discover your dream home with us.
@@ -164,7 +173,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-8 pt-8 flex justify-center">
           <p className="text-gray-400 text-sm">
-            © 2026 EstateHub. All rights reserved.
+            © {new Date().getFullYear()} {activeProfile?.company || 'EstateHub'}. All rights reserved.
           </p>
         </div>
       </div>

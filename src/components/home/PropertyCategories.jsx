@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { categoryService } from '../../services/api';
+import { fetchCategories } from '../../store/slices/categorySlice';
 import { CATEGORY_ICON_MAP } from '../../constants/iconMap';
 
 const PropertyCategories = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { list, loading } = useSelector(s => s.category);
 
   const defaultCategories = [
     {
@@ -43,24 +44,10 @@ const PropertyCategories = () => {
   ];
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await categoryService.getCategories();
-        if (data.success && data.data.length > 0) {
-          setCategories(data.data);
-        } else {
-          setCategories(defaultCategories);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-        setCategories(defaultCategories);
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
-    fetchCategories();
-  }, []);
+  const categories = list.length > 0 ? list : defaultCategories;
 
   if (loading) {
     return (

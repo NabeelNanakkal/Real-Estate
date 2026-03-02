@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiSearch, FiMenu, FiX, FiUser } from 'react-icons/fi';
+import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const Header = () => {
+  const { user, publicProfile } = useAuth();
+  const activeProfile = user || publicProfile;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -37,10 +41,16 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform">
-              <span className="text-white font-bold text-xl">E</span>
-            </div>
-            <span className="text-2xl font-bold text-gradient">EstateHub</span>
+            {activeProfile?.companyLogo ? (
+              <div className="w-12 h-12 flex items-center justify-center transform group-hover:scale-110 transition-transform bg-[#0F172A]/80 backdrop-blur-md border border-white/10 rounded-xl p-2 shadow-sm">
+                <img src={getImageUrl(activeProfile.companyLogo)} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-sm">
+                <span className="text-white font-bold text-xl">{activeProfile?.company?.charAt(0) || 'E'}</span>
+              </div>
+            )}
+            <span className="text-2xl font-bold text-gradient">{activeProfile?.company || 'EstateHub'}</span>
           </Link>
 
           {/* Desktop Navigation */}

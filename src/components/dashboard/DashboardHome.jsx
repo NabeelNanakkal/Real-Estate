@@ -1,36 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FiHome, FiDollarSign, FiEye, FiMail, FiTrendingUp, FiPlus, FiChevronRight } from 'react-icons/fi';
-import { propertyService } from '../../services/api';
+import { FiHome, FiMail, FiChevronRight, FiBriefcase, FiMessageCircle } from 'react-icons/fi';
+import { fetchDashboardStats } from '../../store/slices/propertySlice';
+import { fetchPartners } from '../../store/slices/partnerSlice';
+import { fetchTestimonials } from '../../store/slices/testimonialSlice';
 import { PROPERTY_STATUS } from '../../constants/statuses';
 
 const DashboardHome = () => {
-  const [statsData, setStatsData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { dashboardStats: statsData, statsLoading: loading } = useSelector(s => s.property);
+  const { list: partners } = useSelector(s => s.partner);
+  const { list: testimonials } = useSelector(s => s.testimonial);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const { data } = await propertyService.getDashboardStats();
-        if (data.success) {
-          setStatsData(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+    dispatch(fetchDashboardStats());
+    dispatch(fetchPartners());
+    dispatch(fetchTestimonials({ all: true }));
+  }, [dispatch]);
 
   const stats = [
-    { icon: FiHome, label: 'Properties', value: statsData?.totalProperties || '0', change: '+1', color: 'bg-blue-600', shadow: 'shadow-blue-200', gradient: 'from-blue-600 to-indigo-600' },
-    { icon: FiDollarSign, label: 'Revenue', value: statsData ? `$${(statsData.totalRevenue / 1000).toFixed(0)}K` : '$0', change: '+2%', color: 'bg-emerald-600', shadow: 'shadow-emerald-200', gradient: 'from-emerald-600 to-teal-600' },
-    { icon: FiEye, label: 'Views', value: statsData?.totalViews.toLocaleString() || '0', change: '+15%', color: 'bg-indigo-600', shadow: 'shadow-indigo-200', gradient: 'from-indigo-600 to-purple-600' },
-    { icon: FiMail, label: 'Inquiries', value: statsData?.totalInquiries || '0', change: '+3', color: 'bg-blue-600', shadow: 'shadow-blue-200', gradient: 'from-blue-600 to-sky-600' },
+    { icon: FiHome, label: 'Properties', value: statsData?.totalProperties || '0', gradient: 'from-blue-600 to-indigo-600' },
+    { icon: FiMail, label: 'Inquiries', value: statsData?.totalInquiries || '0', gradient: 'from-blue-600 to-sky-600' },
+    { icon: FiBriefcase, label: 'Partners', value: partners.length || '0', gradient: 'from-emerald-600 to-teal-600' },
+    { icon: FiMessageCircle, label: 'Testimonials', value: testimonials.length || '0', gradient: 'from-indigo-600 to-purple-600' },
   ];
 
   const recentProperties = statsData?.recentProperties || [];
@@ -52,13 +45,9 @@ const DashboardHome = () => {
             <div key={index} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-700 group cursor-default relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none group-hover:bg-primary/5 transition-colors duration-700"></div>
                 
-                <div className="flex items-center justify-between mb-6 relative">
+                <div className="mb-6 relative">
                     <div className={`w-12 h-12 bg-gradient-to-br ${stat.gradient} rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
                         <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex items-center bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border border-emerald-100/50">
-                        <FiTrendingUp className="w-2.5 h-2.5 mr-1" />
-                        {stat.change}
                     </div>
                 </div>
                 

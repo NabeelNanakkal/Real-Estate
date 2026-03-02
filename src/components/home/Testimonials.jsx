@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { FiMessageCircle, FiStar } from 'react-icons/fi';
-import { testimonialService } from '../../services/api';
+import { fetchTestimonials } from '../../store/slices/testimonialSlice';
 import { getImageUrl } from '../../utils/imageUtils';
 
 import 'swiper/css';
@@ -20,22 +21,12 @@ const StarRating = ({ rating }) => (
 );
 
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState([]);
-  const [loading, setLoading]           = useState(true);
+  const dispatch = useDispatch();
+  const { list: testimonials, loading } = useSelector(s => s.testimonial);
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const { data } = await testimonialService.getTestimonials();
-        if (data.success) setTestimonials(data.data);
-      } catch (err) {
-        console.error('Error fetching testimonials:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, []);
+    dispatch(fetchTestimonials());
+  }, [dispatch]);
 
   return (
     <section className="py-20 bg-gradient-to-br from-indigo-900 to-blue-900 text-white relative overflow-hidden">

@@ -4,7 +4,7 @@ export const ROUTES = {
   PROPERTY:   '/properties/:id',
   ABOUT:      '/about',
   CONTACT:    '/contact',
-  LOGIN:      '/auth/login',
-  REGISTER:   '/auth/register',
+  LOGIN:      '/login',
+  REGISTER:   '/register',
   DASHBOARD:  '/dashboard',
 };

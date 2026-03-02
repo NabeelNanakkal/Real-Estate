@@ -1,43 +1,38 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  FiMail, FiPhone, FiEye, FiTrash2, FiSearch, 
-  FiChevronDown, FiCalendar, FiUser, FiMessageSquare, 
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  FiMail, FiPhone, FiEye, FiTrash2, FiSearch,
+  FiChevronDown, FiCalendar, FiUser, FiMessageSquare,
   FiCheckCircle, FiClock, FiAlertCircle, FiHome, FiRefreshCcw
 } from 'react-icons/fi';
-import { inquiryService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { getInitials, formatDate } from '../../utils/formatters';
 import { INQUIRY_STATUS, CRM_STATUS } from '../../constants/statuses';
+import {
+  fetchInquiries,
+  deleteInquiry,
+  updateInquiryStatus,
+  retryInquirySync,
+} from '../../store/slices/inquirySlice';
 
 const Inquiries = () => {
-  const [inquiries, setInquiries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { list: inquiries, loading, mutationError } = useSelector(s => s.inquiry);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
-    const fetchInquiries = async () => {
-      try {
-        setLoading(true);
-        const { data } = await inquiryService.getInquiries();
-        if (data.success) {
-          setInquiries(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching inquiries:', err);
-        toast.error('Failed to load inquiries from database.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchInquiries());
+  }, [dispatch]);
 
-    fetchInquiries();
-  }, []);
+  useEffect(() => {
+    if (mutationError) toast.error(mutationError);
+  }, [mutationError]);
 
   const filteredInquiries = useMemo(() => {
     return inquiries.filter(i => {
-      const matchesSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             (i.property?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                             i.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'All' || i.status === statusFilter.toLowerCase();
@@ -45,42 +40,20 @@ const Inquiries = () => {
     });
   }, [inquiries, searchTerm, statusFilter]);
 
-  const deleteInquiry = async (id) => {
-    try {
-      await inquiryService.deleteInquiry(id);
-      setInquiries(inquiries.filter(i => i._id !== id));
-      toast.success('Inquiry record deleted.');
-    } catch (err) {
-      console.error('Error deleting inquiry:', err);
-      toast.error('Failed to delete inquiry.');
-    }
+  const handleDelete = (id) => {
+    dispatch(deleteInquiry(id));
+    toast.success('Inquiry record deleted.');
   };
 
-  const markContacted = async (id) => {
-    try {
-      const { data } = await inquiryService.updateInquiryStatus(id, 'contacted');
-      if (data.success) {
-        setInquiries(inquiries.map(i => i._id === id ? data.data : i));
-        toast.success('Inquiry marked as contacted.');
-      }
-    } catch (err) {
-      console.error('Error updating inquiry:', err);
-      toast.error('Failed to update inquiry status.');
-    }
+  const markContacted = (id) => {
+    dispatch(updateInquiryStatus({ id, status: 'contacted' }));
+    toast.success('Inquiry marked as contacted.');
   };
 
-  const handleRetrySync = async (id) => {
-    try {
-      toast.loading('Retrying CRM Sync...', { id: 'sync-toast' });
-      const { data } = await inquiryService.retrySync(id);
-      if (data.success) {
-        setInquiries(inquiries.map(i => i._id === id ? data.data : i));
-        toast.success('CRM Sync Successful!', { id: 'sync-toast' });
-      }
-    } catch (err) {
-      console.error('Error retrying sync:', err);
-      toast.error(err.response?.data?.message || 'Sync failed again.', { id: 'sync-toast' });
-    }
+  const handleRetrySync = (id) => {
+    toast.loading('Retrying CRM Sync...', { id: 'sync-toast' });
+    dispatch(retryInquirySync(id));
+    toast.success('CRM Sync requested.', { id: 'sync-toast' });
   };
 
   return (
@@ -235,7 +208,7 @@ const Inquiries = () => {
                     </button>
                   )}
                   <button 
-                    onClick={() => deleteInquiry(inquiry._id)}
+                    onClick={() => handleDelete(inquiry._id)}
                     className="w-full xl:w-16 h-14 xl:h-16 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm flex flex-col items-center justify-center space-y-1 group/btn"
                     title="Purge Intel"
                   >

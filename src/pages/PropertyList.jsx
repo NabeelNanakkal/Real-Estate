@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, Link } from 'react-router-dom';
 import { FiSearch, FiFilter, FiMapPin, FiHome, FiMaximize2, FiGrid, FiList, FiChevronRight } from 'react-icons/fi';
 import { FaBed, FaBath } from 'react-icons/fa';
-import { propertyService } from '../services/api';
+import { fetchProperties } from '../store/slices/propertySlice';
 import EmptyState from '../components/common/EmptyState';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -10,19 +11,10 @@ import { BEDROOM_OPTIONS, PROPERTY_TYPE_FILTERS } from '../constants/propertyTyp
 import { LISTING_TYPE } from '../constants/statuses';
 
 const PropertyList = () => {
+  const dispatch = useDispatch();
+  const { list: properties, loading, error, pagination } = useSelector(s => s.property);
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('grid');
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // Pagination state
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    limit: 10
-  });
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -34,48 +26,27 @@ const PropertyList = () => {
     propertyType: []
   });
 
-  const fetchProperties = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = {
-        type: filters.type || undefined,
-        bedrooms: filters.bedrooms || undefined,
-        city: filters.city || undefined,
-        minPrice: filters.minPrice || undefined,
-        maxPrice: filters.maxPrice || undefined,
-        propertyType: filters.propertyType.length > 0 ? filters.propertyType.join(',') : undefined,
-        page: page,
-        limit: 10
-      };
-      
-      const { data } = await propertyService.getProperties(params);
-      if (data.success) {
-        setProperties(data.data);
-        setPagination({
-          currentPage: data.pagination.currentPage,
-          totalPages: data.pagination.pages,
-          totalCount: data.pagination.total,
-          limit: data.pagination.limit
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching properties:', err);
-      setError('Failed to load properties from database.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const buildParams = useCallback((page = 1) => ({
+    type: filters.type || undefined,
+    bedrooms: filters.bedrooms || undefined,
+    city: filters.city || undefined,
+    minPrice: filters.minPrice || undefined,
+    maxPrice: filters.maxPrice || undefined,
+    propertyType: filters.propertyType.length > 0 ? filters.propertyType.join(',') : undefined,
+    page,
+    limit: 10,
+  }), [filters]);
 
   useEffect(() => {
-    fetchProperties(1);
-  }, [filters.type, filters.bedrooms, filters.city]); // Initial load and URL param changes
+    dispatch(fetchProperties(buildParams(1)));
+  }, [filters.type, filters.bedrooms, filters.city, dispatch]); // eslint-disable-line
 
   const handleApplyFilters = () => {
-    fetchProperties(1);
+    dispatch(fetchProperties(buildParams(1)));
   };
 
   const handlePageChange = (newPage) => {
-    fetchProperties(newPage);
+    dispatch(fetchProperties(buildParams(newPage)));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -337,7 +308,7 @@ const PropertyList = () => {
         )}
 
         {/* Pagination UI - Always at bottom */}
-        {pagination.totalPages > 1 && (
+        {pagination.pages > 1 && (
           <div className="mt-12 flex justify-center items-center space-x-2 w-full">
             <button
               onClick={() => handlePageChange(pagination.currentPage - 1)}
@@ -347,7 +318,7 @@ const PropertyList = () => {
               Previous
             </button>
             
-            {[...Array(pagination.totalPages)].map((_, i) => (
+            {[...Array(pagination.pages)].map((_, i) => (
               <button
                 key={i + 1}
                 onClick={() => handlePageChange(i + 1)}
@@ -363,7 +334,7 @@ const PropertyList = () => {
 
             <button
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={pagination.currentPage === pagination.totalPages}
+              disabled={pagination.currentPage === pagination.pages}
               className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
             >
               Next

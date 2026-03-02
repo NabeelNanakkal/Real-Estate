@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { partnerService } from '../../services/api';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPartners } from '../../store/slices/partnerSlice';
 
 const Partners = () => {
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { list, loading } = useSelector(s => s.partner);
 
   const defaultPartners = [
     { name: 'TechHome', icon: '🏠' },
@@ -17,24 +18,10 @@ const Partners = () => {
   ];
 
   useEffect(() => {
-    const fetchPartners = async () => {
-      try {
-        const { data } = await partnerService.getPartners();
-        if (data.success && data.data.length > 0) {
-          setPartners(data.data);
-        } else {
-          setPartners(defaultPartners);
-        }
-      } catch (err) {
-        console.error('Error fetching partners:', err);
-        setPartners(defaultPartners);
-      } finally {
-        setLoading(false);
-      }
-    };
+    dispatch(fetchPartners());
+  }, [dispatch]);
 
-    fetchPartners();
-  }, []);
+  const partners = list.length > 0 ? list : defaultPartners;
 
   if (loading) {
     return (

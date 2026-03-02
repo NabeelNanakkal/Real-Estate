@@ -32,7 +32,19 @@ const ContactManagement = () => {
       setLoading(true);
       const { data } = await contactService.getContactContent();
       if (data.success && data.data) {
-        setFormData(data.data);
+        const d = data.data;
+        setFormData({
+          phone: d.phone || '',
+          email: d.email || '',
+          address: d.address || '',
+          mapUrl: d.mapUrl || '',
+          workingHours: d.workingHours || '',
+          faqs: d.faqs || [],
+          socialLinks: {
+            facebook: '', twitter: '', instagram: '', linkedin: '',
+            ...(d.socialLinks || {})
+          }
+        });
       }
     } catch (error) {
       console.error('Error fetching contact content:', error);

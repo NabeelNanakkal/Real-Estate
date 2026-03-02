@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi';
 import { authService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Login = () => {
+  const { user, publicProfile } = useAuth();
+  const activeProfile = user || publicProfile;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,10 +38,16 @@ const Login = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">E</span>
-            </div>
-            <span className="text-3xl font-bold text-white">EstateHub</span>
+            {activeProfile?.companyLogo ? (
+              <div className="w-12 h-12 flex items-center justify-center bg-white/10 rounded-xl p-1 backdrop-blur-sm">
+                 <img src={activeProfile.companyLogo.startsWith('http') ? activeProfile.companyLogo : `http://localhost:5000${activeProfile.companyLogo}`} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">{activeProfile?.company?.charAt(0) || 'E'}</span>
+              </div>
+            )}
+            <span className="text-3xl font-bold text-white">{activeProfile?.company || 'EstateHub'}</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
           <p className="text-gray-300">Enter your credentials to access dashboard</p>
@@ -74,16 +83,6 @@ const Login = () => {
                   required
                 />
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center text-white text-sm">
-                <input type="checkbox" className="mr-2 rounded" />
-                Remember me
-              </label>
-              <Link to="/forgot-password" className="text-accent text-sm hover:underline">
-                Forgot password?
-              </Link>
             </div>
 
             <button 

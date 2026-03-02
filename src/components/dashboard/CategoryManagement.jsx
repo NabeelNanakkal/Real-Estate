@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiPlus, FiTrash2, FiEdit2, FiLayers, FiHome, FiShoppingBag, FiTrendingUp, FiExternalLink, FiMaximize } from 'react-icons/fi';
 import { FaBuilding } from 'react-icons/fa';
-import { categoryService } from '../../services/api';
 import toast from 'react-hot-toast';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import {
+  fetchCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  resetCategoryMutation,
+} from '../../store/slices/categorySlice';
 
 const iconOptions = [
   { key: 'FiHome', icon: FiHome, label: 'Home' },
@@ -23,9 +30,9 @@ const gradientOptions = [
 ];
 
 const CategoryManagement = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const dispatch = useDispatch();
+  const { list: categories, loading, mutationLoading: saving, mutationSuccess, mutationError } = useSelector(s => s.category);
+
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -38,23 +45,20 @@ const CategoryManagement = () => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-      const { data } = await categoryService.getCategories();
-      if (data.success) {
-        setCategories(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (mutationSuccess) {
+      toast.success(editingId ? 'Category updated!' : 'Category added!');
+      resetForm();
+      dispatch(resetCategoryMutation());
     }
-  };
+    if (mutationError) {
+      toast.error(mutationError);
+      dispatch(resetCategoryMutation());
+    }
+  }, [mutationSuccess, mutationError, dispatch]); // eslint-disable-line
 
   const handleEdit = (category) => {
     setEditingId(category._id);
@@ -81,28 +85,12 @@ const CategoryManagement = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      setSaving(true);
-      if (editingId) {
-        const { data } = await categoryService.updateCategory(editingId, formData);
-        if (data.success) {
-          setCategories(categories.map(c => c._id === editingId ? data.data : c));
-          toast.success('Category updated successfully!');
-        }
-      } else {
-        const { data } = await categoryService.addCategory(formData);
-        if (data.success) {
-          setCategories([...categories, data.data]);
-          toast.success('Category added successfully!');
-        }
-      }
-      resetForm();
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Error saving category');
-    } finally {
-      setSaving(false);
+    if (editingId) {
+      dispatch(updateCategory({ id: editingId, data: formData }));
+    } else {
+      dispatch(addCategory(formData));
     }
   };
 
@@ -110,19 +98,10 @@ const CategoryManagement = () => {
     setDeleteModal({ isOpen: true, id });
   };
 
-  const confirmDelete = async () => {
-    const { id } = deleteModal;
-    try {
-      const { data } = await categoryService.deleteCategory(id);
-      if (data.success) {
-        setCategories(categories.filter(c => c._id !== id));
-        toast.success('Category deleted successfully!');
-      }
-    } catch (error) {
-      toast.error('Error deleting category');
-    } finally {
-      setDeleteModal({ isOpen: false, id: null });
-    }
+  const confirmDelete = () => {
+    dispatch(deleteCategory(deleteModal.id));
+    toast.success('Category deleted successfully!');
+    setDeleteModal({ isOpen: false, id: null });
   };
 
   if (loading) return <div className="p-10 text-center font-bold text-gray-400">Loading Categories...</div>;
