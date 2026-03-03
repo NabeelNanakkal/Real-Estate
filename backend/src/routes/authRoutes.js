@@ -8,7 +8,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.put('/preferences', protect, updatePreferences);
-router.put('/profile', protect, upload.single('companyLogo'), updateProfile);
+router.put('/profile', protect, upload.any(), updateProfile);
 router.put('/password', protect, updatePassword);
 router.get('/public-profile', getPublicProfile);
 

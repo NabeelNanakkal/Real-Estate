@@ -72,9 +72,9 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   
   const userFields = { name, email, phone, bio, company };
 
-  // If a file is uploaded, set it as companyLogo/avatar
-  if (req.file) {
-    userFields.companyLogo = req.file.path || `/uploads/${req.file.filename}`;
+  const file = req.files?.[0];
+  if (file) {
+    userFields.companyLogo = file.path || `/uploads/${file.filename}`;
   }
 
   const user = await User.findByIdAndUpdate(

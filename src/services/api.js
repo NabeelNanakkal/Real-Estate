@@ -52,7 +52,7 @@ export const authService = {
 
 export const userService = {
   updatePreferences: (data) => api.put('/auth/preferences', data),
-  updateProfile:     (data) => api.put('/auth/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  updateProfile:     (data) => api.put('/auth/profile', data),
   updatePassword:    (data) => api.put('/auth/password', data),
 };
 

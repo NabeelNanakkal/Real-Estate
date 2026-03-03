@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   FiSave, FiLock, FiUser, FiBell, FiShield, 
   FiGlobe, FiSmartphone, FiCpu, FiCheckCircle, 
-  FiChevronRight, FiCreditCard, FiActivity, FiMail
+  FiChevronRight, FiCreditCard, FiActivity, FiMail,
+  FiEye, FiEyeOff
 } from 'react-icons/fi';
 import { authService, userService } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -28,6 +29,15 @@ const Settings = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -82,15 +92,13 @@ const Settings = () => {
 
   const handleSecuritySubmit = async (e) => {
     e.preventDefault();
-    if (formData.security.newPassword !== formData.security.confirmPassword) {
-      return toast.error('Passwords do not match.');
-    }
+    const { currentPassword, newPassword, confirmPassword } = formData.security;
+    if (!currentPassword) return toast.error('Please enter your current password.');
+    if (newPassword.length < 6) return toast.error('New password must be at least 6 characters.');
+    if (newPassword !== confirmPassword) return toast.error('Passwords do not match.');
     try {
       setSaving(true);
-      const res = await userService.updatePassword({
-        currentPassword: formData.security.currentPassword,
-        newPassword: formData.security.newPassword
-      });
+      const res = await userService.updatePassword({ currentPassword, newPassword });
       if (res.data.success) {
         toast.success('Password updated successfully.');
         setFormData(prev => ({ ...prev, security: { currentPassword: '', newPassword: '', confirmPassword: '' } }));
@@ -146,8 +154,12 @@ const Settings = () => {
                   {React.createElement(navItems.find(i => i.id === activeSection)?.icon || FiUser, { className: 'w-5 h-5' })}
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">{activeSection} Profile</h2>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Update your personal details</p>
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">
+                    {activeSection === 'Profile' ? 'Profile Settings' : 'Change Password'}
+                  </h2>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    {activeSection === 'Profile' ? 'Update your personal details' : 'Update your account password'}
+                  </p>
                 </div>
               </div>
 
@@ -222,32 +234,59 @@ const Settings = () => {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-3">Current Password</label>
-                    <input
-                      type="password"
-                      value={formData.security.currentPassword}
-                      onChange={(e) => setFormData({ ...formData, security: { ...formData.security, currentPassword: e.target.value } })}
-                      className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px]"
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPasswords.current ? "text" : "password"}
+                        value={formData.security.currentPassword}
+                        onChange={(e) => setFormData({ ...formData, security: { ...formData.security, currentPassword: e.target.value } })}
+                        className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px] pr-12"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('current')}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {showPasswords.current ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-3">New Password</label>
-                      <input
-                        type="password"
-                        value={formData.security.newPassword}
-                        onChange={(e) => setFormData({ ...formData, security: { ...formData.security, newPassword: e.target.value } })}
-                        className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px]"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showPasswords.new ? "text" : "password"}
+                          value={formData.security.newPassword}
+                          onChange={(e) => setFormData({ ...formData, security: { ...formData.security, newPassword: e.target.value } })}
+                          className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px] pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility('new')}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          {showPasswords.new ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-3">Confirm Password</label>
-                      <input
-                        type="password"
-                        value={formData.security.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, security: { ...formData.security, confirmPassword: e.target.value } })}
-                        className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px]"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showPasswords.confirm ? "text" : "password"}
+                          value={formData.security.confirmPassword}
+                          onChange={(e) => setFormData({ ...formData, security: { ...formData.security, confirmPassword: e.target.value } })}
+                          className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px] pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility('confirm')}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          {showPasswords.confirm ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

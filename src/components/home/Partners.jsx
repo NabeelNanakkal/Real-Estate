@@ -1,6 +1,14 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPartners } from '../../store/slices/partnerSlice';
+import { getImageUrl } from '../../utils/imageUtils';
+
+const PartnerIcon = ({ icon }) => {
+  if (icon && (icon.startsWith('http') || icon.startsWith('/'))) {
+    return <img src={getImageUrl(icon)} alt="partner logo" className="h-8 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all" />;
+  }
+  return <span className="text-3xl filter grayscale group-hover:grayscale-0 transition-all">{icon}</span>;
+};
 
 const Partners = () => {
   const dispatch = useDispatch();
@@ -50,7 +58,7 @@ const Partners = () => {
             <div className="flex items-center gap-16 px-8">
               {partners.map((partner, index) => (
                 <div key={`p1-${index}`} className="flex items-center space-x-3 group cursor-pointer opacity-50 hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-3xl filter grayscale group-hover:grayscale-0 transition-all">{partner.icon}</span>
+                  <PartnerIcon icon={partner.icon} />
                   <span className="text-xl font-bold text-gray-400 group-hover:text-primary transition-colors">{partner.name}</span>
                 </div>
               ))}
@@ -59,7 +67,7 @@ const Partners = () => {
             <div className="flex items-center gap-16 px-8">
               {partners.map((partner, index) => (
                 <div key={`p2-${index}`} className="flex items-center space-x-3 group cursor-pointer opacity-50 hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-3xl filter grayscale group-hover:grayscale-0 transition-all">{partner.icon}</span>
+                  <PartnerIcon icon={partner.icon} />
                   <span className="text-xl font-bold text-gray-400 group-hover:text-primary transition-colors">{partner.name}</span>
                 </div>
               ))}
