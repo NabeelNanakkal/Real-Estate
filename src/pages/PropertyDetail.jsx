@@ -9,9 +9,10 @@ import { FaBath, FaBed } from 'react-icons/fa';
 import { propertyService, inquiryService } from '../services/api';
 import { FEATURE_ICON_MAP } from '../constants/iconMap';
 import { getImageUrl } from '../utils/imageUtils';
-import { formatCurrency } from '../utils/formatters';
+import { useAuth } from '../context/AuthContext';
 
 const PropertyDetail = () => {
+  const { formatPrice } = useAuth();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -153,7 +154,7 @@ const PropertyDetail = () => {
             </div>
             <div className="text-right">
               <div className="text-3xl md:text-4xl font-black text-primary mb-2">
-                {formatCurrency(property.price)}
+                {formatPrice(property.price)}
               </div>
               <div className="flex items-center md:justify-end space-x-3">
                 <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-semibold">
@@ -479,7 +480,7 @@ const PropertyDetail = () => {
                     <FiMapPin className="mr-1" /> {prop.city}, {prop.location}
                   </p>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-primary font-black">{formatCurrency(prop.price)}</span>
+                    <span className="text-primary font-black">{formatPrice(prop.price)}</span>
                     <button className="text-white font-bold opacity-0 group-hover:opacity-100 transition-opacity">View Details →</button>
                   </div>
                 </div>

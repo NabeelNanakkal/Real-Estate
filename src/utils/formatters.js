@@ -1,5 +1,5 @@
-export const formatCurrency = (value) =>
-  `$${Number(value || 0).toLocaleString()}`;
+export const formatCurrency = (value, symbol = '$') =>
+  `${symbol} ${Number(value || 0).toLocaleString()}`;
 
 export const formatDate = (dateString, options) =>
   new Date(dateString).toLocaleDateString('en-US', options || {

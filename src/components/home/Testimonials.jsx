@@ -29,28 +29,28 @@ const Testimonials = () => {
   }, [dispatch]);
 
   return (
-    <section className="py-20 bg-gradient-to-br from-indigo-900 to-blue-900 text-white relative overflow-hidden">
-      {/* Decorative Circles */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
+    <section className="py-20 bg-[#0F0F0F] text-white relative overflow-hidden">
+      {/* Decorative glows */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/8 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
       <div className="container-custom relative z-10">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4">
-            <FiMessageCircle className="w-6 h-6 text-accent" />
+          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+            <FiMessageCircle className="w-6 h-6 text-primary" />
           </div>
           <h2 className="text-4xl font-bold mb-4">What Our Clients Say</h2>
-          <p className="text-blue-200 max-w-2xl mx-auto">
+          <p className="text-white/50 max-w-2xl mx-auto">
             Read success stories from our satisfied clients who found their perfect property with us.
           </p>
         </div>
 
         {loading ? (
-          <div className="text-center text-blue-200 py-10 font-semibold animate-pulse">
+          <div className="text-center text-white/40 py-10 font-semibold animate-pulse">
             Loading testimonials...
           </div>
         ) : testimonials.length === 0 ? (
-          <div className="text-center text-blue-200 py-10">No testimonials yet.</div>
+          <div className="text-center text-white/40 py-10">No testimonials yet.</div>
         ) : (
           <Swiper
             modules={[Pagination, Autoplay]}
@@ -78,16 +78,16 @@ const Testimonials = () => {
                   {/* Author */}
                   <div className="flex items-center space-x-4 pt-4 border-t border-white/10">
                     <img
-                      src={getImageUrl(t.image) || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=3b82f6&color=fff&size=64`}
+                      src={getImageUrl(t.image) || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=e1ad42&color=fff&size=64`}
                       alt={t.name}
                       className="w-12 h-12 rounded-full border-2 border-accent object-cover flex-shrink-0"
                       onError={(e) => {
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=3b82f6&color=fff&size=64`;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=e1ad42&color=fff&size=64`;
                       }}
                     />
                     <div>
                       <h3 className="font-bold text-base leading-tight">{t.name}</h3>
-                      <p className="text-blue-200 text-xs mt-0.5">{t.role}</p>
+                      <p className="text-white/50 text-xs mt-0.5">{t.role}</p>
                     </div>
                   </div>
                 </div>

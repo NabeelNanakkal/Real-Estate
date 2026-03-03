@@ -14,8 +14,10 @@ import { getImageUrl } from '../../utils/imageUtils';
 import { PROPERTY_TYPES, DEFAULT_PROPERTY_TYPE } from '../../constants/propertyTypes';
 import { PROPERTY_STATUS, LISTING_TYPE, STATUS_FILTER_ALL } from '../../constants/statuses';
 import { SORT_OPTIONS, SORT, DEFAULT_SORT } from '../../constants/sortOptions';
+import { useAuth } from '../../context/AuthContext';
 
 const PropertyManagement = () => {
+  const { formatPrice, activeCurrency } = useAuth();
   // --- STATE ---
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -373,7 +375,7 @@ const PropertyManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-6">
-                    <div className="font-black text-slate-900 text-lg tracking-tight">${p.price?.toLocaleString() || '0'}</div>
+                    <div className="font-black text-slate-900 text-lg tracking-tight">{formatPrice(p.price || 0)}</div>
                     <div className="text-[9px] font-black text-emerald-500 tracking-widest mt-0.5 uppercase opacity-80">Market Value</div>
                   </td>
                   <td className="px-6 py-6">
@@ -482,7 +484,7 @@ const PropertyManagement = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Price ($)</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Price ({activeCurrency.symbol})</label>
                     <input 
                       type="number" required value={formData.price}
                       onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}

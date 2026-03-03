@@ -5,8 +5,10 @@ import { FiMapPin, FiMaximize2 } from 'react-icons/fi';
 import { FaBath, FaBed } from 'react-icons/fa';
 import { fetchFeaturedProperties } from '../../store/slices/propertySlice';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useAuth } from '../../context/AuthContext';
 
 const FeaturedProperties = () => {
+  const { formatPrice } = useAuth();
   const dispatch = useDispatch();
   const { featured: properties, featuredLoading: loading } = useSelector(s => s.property);
 
@@ -55,7 +57,7 @@ const FeaturedProperties = () => {
                 </div>
                 
                 <div className="absolute bottom-4 right-4 bg-primary text-white px-4 py-1.5 rounded-xl text-sm font-black shadow-xl">
-                  ${property.price.toLocaleString()}
+                  {formatPrice(property.price)}
                 </div>
               </div>
 

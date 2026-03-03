@@ -77,6 +77,7 @@ const ZONING_OPTIONS = [
 
 const AddProperty = () => {
   const navigate = useNavigate();
+  const { activeCurrency } = useAuth();
   const [formData, setFormData] = useState({
     title: '', description: '', propertyType: '',
     listingType: 'sale', price: '', location: '', city: '',
@@ -264,7 +265,7 @@ const AddProperty = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Price (AED)</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Price ({activeCurrency.symbol})</label>
                   <input
                     type="number" name="price" value={formData.price} onChange={handleChange} required
                     placeholder="0"

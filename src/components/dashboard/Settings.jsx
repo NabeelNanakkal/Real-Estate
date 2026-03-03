@@ -9,6 +9,7 @@ import { authService, userService } from '../../services/api';
 import { getImageUrl } from '../../utils/imageUtils';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { CURRENCIES } from '../../constants/currencies';
 
 const Settings = () => {
   const { fetchUser, fetchPublicProfile } = useAuth();
@@ -18,6 +19,8 @@ const Settings = () => {
       name: '',
       email: '',
       company: '',
+      currency: 'USD',
+      bio: '',
       companyLogo: null,
       companyLogoPreview: ''
     },
@@ -52,6 +55,8 @@ const Settings = () => {
               name: user.name || '',
               email: user.email || '',
               company: user.company || '',
+              currency: user.currency || 'USD',
+              bio: user.bio || '',
               companyLogoPreview: user.companyLogo || ''
             }
           }));
@@ -73,6 +78,8 @@ const Settings = () => {
       data.append('name', formData.profile.name);
       data.append('email', formData.profile.email);
       data.append('company', formData.profile.company);
+      data.append('currency', formData.profile.currency);
+      data.append('bio', formData.profile.bio);
       if (formData.profile.companyLogo) {
         data.append('companyLogo', formData.profile.companyLogo);
       }
@@ -225,6 +232,34 @@ const Settings = () => {
                         onChange={(e) => setFormData({ ...formData, profile: { ...formData.profile, email: e.target.value } })}
                         className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px]"
                       />
+                    </div>
+ 
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-3">Personal Bio</label>
+                      <textarea
+                        value={formData.profile.bio}
+                        onChange={(e) => setFormData({ ...formData, profile: { ...formData.profile, bio: e.target.value } })}
+                        className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px] resize-none h-[49px]"
+                        placeholder="Brief professional summary..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-3">Currency</label>
+                      <select
+                        value={formData.profile.currency}
+                        onChange={(e) => setFormData({ ...formData, profile: { ...formData.profile, currency: e.target.value } })}
+                        className="w-full px-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-primary/5 transition-all font-bold text-slate-900 text-[13px] cursor-pointer"
+                      >
+                        {CURRENCIES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.symbol} — {c.code} · {c.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest ml-3">
+                        Applied to all property prices on the website.
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
 import SearchBar from './SearchBar';
 import { Link } from 'react-router-dom';
 import { propertyService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -12,6 +13,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 const HeroCarousel = () => {
+  const { formatPrice } = useAuth();
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +27,7 @@ const HeroCarousel = () => {
             _id: p._id,
             image: p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80',
             title: p.title,
-            subtitle: `${p.city} • ${p.propertyType.charAt(0).toUpperCase() + p.propertyType.slice(1)} • $${p.price.toLocaleString()}`
+            subtitle: `${p.city} • ${p.propertyType.charAt(0).toUpperCase() + p.propertyType.slice(1)} • ${formatPrice(p.price)}`
           }));
           setSlides(heroSlides);
         }

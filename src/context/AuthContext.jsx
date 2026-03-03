@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authService } from '../services/api';
 import { getImageUrl, generateFavicon } from '../utils/imageUtils';
+import { getCurrencyByCode } from '../constants/currencies';
+import { formatCurrency } from '../utils/formatters';
 
 const AuthContext = createContext();
 
@@ -74,6 +76,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user, publicProfile]);
 
+  const activeProfile = user || publicProfile;
+  const activeCurrency = getCurrencyByCode(activeProfile?.currency || 'USD');
+  const formatPrice = (amount) => formatCurrency(amount, activeCurrency.symbol);
+
   const login = async (userData, token) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -88,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, publicProfile, setPublicProfile, loading, login, logout, fetchUser, fetchPublicProfile }}>
+    <AuthContext.Provider value={{ user, setUser, publicProfile, setPublicProfile, loading, login, logout, fetchUser, fetchPublicProfile, activeCurrency, formatPrice }}>
       {children}
     </AuthContext.Provider>
   );

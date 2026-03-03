@@ -72,7 +72,7 @@ const Home = () => {
 
       {/* Stats Section with Background */}
       <div className="relative py-20 bg-fixed bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80)' }}>
-        <div className="absolute inset-0 bg-blue-900/80"></div>
+        <div className="absolute inset-0 bg-gray-900/85"></div>
         <div className="relative z-10">
           <Stats />
         </div>
@@ -83,10 +83,8 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="relative py-20 overflow-hidden bg-gray-900">
-        {/* Animated Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-primary/40"></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 animate-pulse"></div>
-        
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-[#1a1a1a] to-[#0F0F0F]"></div>
+
         {/* Floating Background Effects */}
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-10 right-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-float"></div>
@@ -98,15 +96,15 @@ const Home = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-lg">
               Unlock Your Dream Lifestyle
             </h2>
-            <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-light">
-              Don't just look for a place to live. Find a place to <span className="text-accent font-semibold">thrive</span>. 
+            <p className="text-white/60 text-lg mb-8 max-w-2xl mx-auto leading-relaxed font-light">
+              Don't just look for a place to live. Find a place to <span className="text-primary font-semibold">thrive</span>.
               Join our exclusive network of homeowners today.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/properties" className="group relative px-6 py-3 bg-white text-primary rounded-xl font-bold text-base overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]">
                 <span className="relative z-10 group-hover:text-primary-dark transition-colors">Start Browsing</span>
-                <div className="absolute inset-0 h-full w-full scale-0 rounded-xl transition-all duration-300 group-hover:scale-100 group-hover:bg-blue-50/50"></div>
+                <div className="absolute inset-0 h-full w-full scale-0 rounded-xl transition-all duration-300 group-hover:scale-100 group-hover:bg-primary/10"></div>
               </Link>
               
               <Link to="/contact" className="group px-6 py-3 bg-white/10 backdrop-blur-md border border-white/30 text-white rounded-xl font-bold text-base hover:bg-white/20 transition-all hover:border-white/50">
@@ -115,7 +113,7 @@ const Home = () => {
             </div>
             
             {/* Trust Indicators */}
-            <div className="mt-8 pt-6 border-t border-white/10 flex justify-center items-center gap-6 text-sm text-blue-200">
+            <div className="mt-8 pt-6 border-t border-white/10 flex justify-center items-center gap-6 text-sm text-white/50">
               <div className="flex items-center gap-2">
                 <FiCheckCircle className="text-accent" /> <span>No Hidden Fees</span>
               </div>

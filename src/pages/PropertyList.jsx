@@ -6,11 +6,13 @@ import { FaBed, FaBath } from 'react-icons/fa';
 import { fetchProperties } from '../store/slices/propertySlice';
 import EmptyState from '../components/common/EmptyState';
 import { getImageUrl } from '../utils/imageUtils';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatDate } from '../utils/formatters';
+import { useAuth } from '../context/AuthContext';
 import { BEDROOM_OPTIONS, PROPERTY_TYPE_FILTERS } from '../constants/propertyTypes';
 import { LISTING_TYPE } from '../constants/statuses';
 
 const PropertyList = () => {
+  const { formatPrice } = useAuth();
   const dispatch = useDispatch();
   const { list: properties, loading, error, pagination } = useSelector(s => s.property);
   const [searchParams] = useSearchParams();
@@ -263,7 +265,7 @@ const PropertyList = () => {
                         </h3>
                       </div>
                       <div className="text-xl font-bold text-primary">
-                        {formatCurrency(property.price)}
+                        {formatPrice(property.price)}
                       </div>
                     </div>
 
