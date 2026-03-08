@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import MouseSpotlight from './components/layout/MouseSpotlight';
+import FloatingContact from './components/layout/FloatingContact';
 import { ROUTES } from './constants/routes';
 import { PROTECTED_ROLES } from './constants/roles';
 import { AuthProvider } from './context/AuthContext';
@@ -32,6 +33,7 @@ const PublicLayout = () => (
     <Header />
     <main className="flex-grow"><Outlet /></main>
     <Footer />
+    <FloatingContact />
   </div>
 );
 
