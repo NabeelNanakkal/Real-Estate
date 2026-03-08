@@ -1,28 +1,32 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiSearch, FiMapPin, FiHome, FiDollarSign, FiTrendingUp, FiAward, FiUsers, FiCheckCircle } from 'react-icons/fi';
-import SearchBar from '../components/home/SearchBar';
-import FeaturedProperties from '../components/home/FeaturedProperties';
-import PropertyCategories from '../components/home/PropertyCategories';
-import Stats from '../components/home/Stats';
-import HeroCarousel from '../components/home/HeroCarousel';
-import Testimonials from '../components/home/Testimonials';
-import Partners from '../components/home/Partners';
+import React, { lazy, Suspense } from 'react';
+import { Link } from 'react-router-dom';
+import { FiTrendingUp, FiAward, FiUsers, FiCheckCircle } from 'react-icons/fi';
+
+const HeroCarousel       = lazy(() => import('../components/home/HeroCarousel'));
+const Partners           = lazy(() => import('../components/home/Partners'));
+const PropertyCategories = lazy(() => import('../components/home/PropertyCategories'));
+const FeaturedProperties = lazy(() => import('../components/home/FeaturedProperties'));
+const Stats              = lazy(() => import('../components/home/Stats'));
+const Testimonials       = lazy(() => import('../components/home/Testimonials'));
 
 const Home = () => {
   return (
     <div className="pt-20">
-      {/* Hero Section with Carousel */}
-      <HeroCarousel />
-      
-      {/* Trusted Partners */}
-      <Partners />
+      <Suspense fallback={<div className="h-[600px] bg-gray-900 animate-pulse" />}>
+        <HeroCarousel />
+      </Suspense>
 
-      {/* Property Categories */}
-      <PropertyCategories />
+      <Suspense fallback={<div className="h-24 bg-white animate-pulse" />}>
+        <Partners />
+      </Suspense>
 
-      {/* Featured Properties */}
-      <FeaturedProperties />
+      <Suspense fallback={<div className="h-64 bg-white animate-pulse" />}>
+        <PropertyCategories />
+      </Suspense>
+
+      <Suspense fallback={<div className="h-96 bg-gray-50 animate-pulse" />}>
+        <FeaturedProperties />
+      </Suspense>
 
       {/* Why Choose Us */}
       <section className="py-20 bg-gray-50">
@@ -74,12 +78,15 @@ const Home = () => {
       <div className="relative py-20 bg-fixed bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80)' }}>
         <div className="absolute inset-0 bg-gray-900/85"></div>
         <div className="relative z-10">
-          <Stats />
+          <Suspense fallback={<div className="h-48 animate-pulse" />}>
+            <Stats />
+          </Suspense>
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <Testimonials />
+      <Suspense fallback={<div className="h-96 bg-white animate-pulse" />}>
+        <Testimonials />
+      </Suspense>
 
       {/* CTA Section */}
       <section className="relative py-20 overflow-hidden bg-gray-900">

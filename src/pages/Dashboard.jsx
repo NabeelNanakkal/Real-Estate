@@ -1,22 +1,23 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { FiHome, FiList, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight, FiImage, FiBarChart2 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageUtils';
-import DashboardHome from '../components/dashboard/DashboardHome';
-import PropertyManagement from '../components/dashboard/PropertyManagement';
-import AddProperty from '../components/dashboard/AddProperty';
-import Analytics from '../components/dashboard/Analytics';
-import Inquiries from '../components/dashboard/Inquiries';
-import Settings from '../components/dashboard/Settings';
-import AboutManagement from '../components/dashboard/AboutManagement';
-import PartnerManagement from '../components/dashboard/PartnerManagement';
-import CategoryManagement from '../components/dashboard/CategoryManagement';
-import ContactManagement from '../components/dashboard/ContactManagement';
-import TestimonialManagement from '../components/dashboard/TestimonialManagement';
-import BannerManagement from '../components/dashboard/BannerManagement';
-import StatsManagement from '../components/dashboard/StatsManagement';
-import LogoutConfirmModal from '../components/dashboard/LogoutConfirmModal';
+
+const DashboardHome        = lazy(() => import('../components/dashboard/DashboardHome'));
+const PropertyManagement   = lazy(() => import('../components/dashboard/PropertyManagement'));
+const AddProperty          = lazy(() => import('../components/dashboard/AddProperty'));
+const Analytics            = lazy(() => import('../components/dashboard/Analytics'));
+const Inquiries            = lazy(() => import('../components/dashboard/Inquiries'));
+const Settings             = lazy(() => import('../components/dashboard/Settings'));
+const AboutManagement      = lazy(() => import('../components/dashboard/AboutManagement'));
+const PartnerManagement    = lazy(() => import('../components/dashboard/PartnerManagement'));
+const CategoryManagement   = lazy(() => import('../components/dashboard/CategoryManagement'));
+const ContactManagement    = lazy(() => import('../components/dashboard/ContactManagement'));
+const TestimonialManagement = lazy(() => import('../components/dashboard/TestimonialManagement'));
+const BannerManagement     = lazy(() => import('../components/dashboard/BannerManagement'));
+const StatsManagement      = lazy(() => import('../components/dashboard/StatsManagement'));
+const LogoutConfirmModal   = lazy(() => import('../components/dashboard/LogoutConfirmModal'));
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -213,7 +214,8 @@ const Dashboard = () => {
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto">
-                <Routes>
+                <Suspense fallback={<div className="p-10 text-center font-bold text-slate-400">Loading...</div>}>
+                  <Routes>
                     <Route path="/" element={<DashboardHome />} />
                     <Route path="/properties" element={<PropertyManagement />} />
                     <Route path="/add-property" element={<AddProperty />} />
@@ -222,12 +224,13 @@ const Dashboard = () => {
                     <Route path="/about" element={<AboutManagement />} />
                     <Route path="/partners" element={<PartnerManagement />} />
                     <Route path="/categories" element={<CategoryManagement />} />
-                    <Route path="/contact"       element={<ContactManagement />} />
+                    <Route path="/contact" element={<ContactManagement />} />
                     <Route path="/testimonials" element={<TestimonialManagement />} />
                     <Route path="/banners" element={<BannerManagement />} />
                     <Route path="/stats" element={<StatsManagement />} />
                     <Route path="/settings" element={<Settings />} />
-                </Routes>
+                  </Routes>
+                </Suspense>
             </div>
         </main>
       </div>
