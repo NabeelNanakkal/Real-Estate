@@ -34,7 +34,7 @@ const PropertyManagement = () => {
   const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
   const [formData, setFormData] = useState({
     _id: null, title: '', description: '', propertyType: '', category: '', listingType: LISTING_TYPE.SALE, price: '',
-    location: '', city: '', bedrooms: '', bathrooms: '', area: '',
+    location: '', city: '', mapUrl: '', bedrooms: '', bathrooms: '', area: '',
     parking: '', amenities: [], images: [], nearby: []
   });
 
@@ -121,8 +121,8 @@ const PropertyManagement = () => {
       _id: null,
       listingId: `EH-${Math.floor(1000 + Math.random() * 9000)}`,
       title: '', description: '', propertyType: DEFAULT_PROPERTY_TYPE, listingType: LISTING_TYPE.SALE, price: '',
-      location: '', city: '', category: '',
-      bedrooms: '', bathrooms: '', area: '', 
+      location: '', city: '', mapUrl: '', category: '',
+      bedrooms: '', bathrooms: '', area: '',
       parking: '', amenities: [], images: [], nearby: []
     });
     setPreviews([]);
@@ -143,6 +143,7 @@ const PropertyManagement = () => {
       price: property.price,
       location: property.location,
       city: property.city || '',
+      mapUrl: property.mapUrl || '',
       bedrooms: property.bedrooms || '',
       bathrooms: property.bathrooms || '',
       area: property.area || '',
@@ -168,6 +169,7 @@ const PropertyManagement = () => {
       price: property.price,
       location: property.location,
       city: property.city || '',
+      mapUrl: property.mapUrl || '',
       bedrooms: property.bedrooms || '',
       bathrooms: property.bathrooms || '',
       area: property.area || '',
@@ -577,6 +579,17 @@ const PropertyManagement = () => {
                       placeholder="e.g. 123 Luxury Lane"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Google Maps Embed URL</label>
+                  <input
+                    type="url" value={formData.mapUrl || ''}
+                    onChange={(e) => setFormData({...formData, mapUrl: e.target.value})}
+                    readOnly={drawerMode === 'view'}
+                    className={`w-full bg-white px-6 py-4 rounded-2xl outline-none border border-gray-100 shadow-sm transition-all font-bold text-sm ${drawerMode !== 'view' ? 'focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5' : 'cursor-default'}`}
+                    placeholder="Paste Google Maps embed src URL"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-gray-50">

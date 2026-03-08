@@ -82,7 +82,7 @@ const AddProperty = () => {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '', description: '', propertyType: '',
-    listingType: 'sale', price: '', location: '', city: '',
+    listingType: 'sale', price: '', location: '', city: '', mapUrl: '',
     category: '',
     bedrooms: '', bathrooms: '', area: '', parking: '',
     floor: '', totalFloors: '', plotSize: '', houseFloors: '',
@@ -354,6 +354,15 @@ const AddProperty = () => {
                   <input
                     type="text" name="city" value={formData.city} onChange={handleChange} required
                     placeholder="e.g. Dubai"
+                    className="w-full bg-slate-50 border-none px-6 py-3.5 rounded-xl font-bold text-slate-900 focus:ring-4 focus:ring-indigo-500/5 transition-all text-[13px]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Google Maps Embed URL</label>
+                  <input
+                    type="url" name="mapUrl" value={formData.mapUrl || ''} onChange={handleChange}
+                    placeholder="Paste Google Maps embed src URL (from Share → Embed a map → copy src value)"
                     className="w-full bg-slate-50 border-none px-6 py-3.5 rounded-xl font-bold text-slate-900 focus:ring-4 focus:ring-indigo-500/5 transition-all text-[13px]"
                   />
                 </div>

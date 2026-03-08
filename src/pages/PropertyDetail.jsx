@@ -385,17 +385,25 @@ const PropertyDetail = () => {
                 )}
                 {activeTab === 'location' && (
                   <div className="animate-fade-in">
-                    <div className="h-[400px] rounded-3xl overflow-hidden border-8 border-gray-50 grayscale hover:grayscale-0 transition-all duration-700 cursor-crosshair">
-                      <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3305.715226221469!2d-118.40296768478496!3d34.07362048060595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2bc04d6d147ab%3A0xd6c7c37927bd4436!2sBeverly%20Hills%2C%20CA!5e0!3m2!1sen!2sus!4v1620311746524!5m2!1sen!2sus" 
-                        width="100%" 
-                        height="100%" 
-                        style={{ border: 0 }} 
-                        allowFullScreen="" 
-                        loading="lazy"
-                        title="Property Location"
-                      ></iframe>
-                    </div>
+                    {property.mapUrl ? (
+                      <div className="h-[400px] rounded-3xl overflow-hidden border-8 border-gray-50 grayscale hover:grayscale-0 transition-all duration-700 cursor-crosshair">
+                        <iframe
+                          src={property.mapUrl}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen=""
+                          loading="lazy"
+                          title="Property Location"
+                        ></iframe>
+                      </div>
+                    ) : (
+                      <div className="h-[400px] rounded-3xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200">
+                        <FiMapPin className="w-12 h-12 mb-3 opacity-30" />
+                        <p className="font-semibold text-sm">No map location added</p>
+                        <p className="text-xs mt-1 opacity-60">The agent hasn't added a map embed URL for this property.</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
