@@ -72,8 +72,10 @@ const Header = () => {
             <NavLink to="/about" isActive={isActive('/about')}>About</NavLink>
             {categories.map((cat) => {
               const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
-              const catActive = location.pathname === '/properties' &&
-                new URLSearchParams(location.search).get('category') === cat.title;
+              const catActive =
+                location.pathname + location.search === cat.link ||
+                (location.pathname === '/properties' &&
+                  new URLSearchParams(location.search).get('category') === cat.title);
               return (
                 <NavLink key={cat._id} to={href} isActive={catActive}>
                   {cat.title}
@@ -111,8 +113,10 @@ const Header = () => {
               <MobileNavLink to="/about" isActive={isActive('/about')} onClick={() => setIsMenuOpen(false)}>About</MobileNavLink>
               {categories.map((cat) => {
                 const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
-                const catActive = location.pathname === '/properties' &&
-                  new URLSearchParams(location.search).get('category') === cat.title;
+                const catActive =
+                  location.pathname + location.search === cat.link ||
+                  (location.pathname === '/properties' &&
+                    new URLSearchParams(location.search).get('category') === cat.title);
                 return (
                   <MobileNavLink key={cat._id} to={href} isActive={catActive} onClick={() => setIsMenuOpen(false)}>
                     {cat.title}
