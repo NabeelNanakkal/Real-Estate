@@ -31,6 +31,11 @@ const Header = () => {
     if (path === '/') {
       return location.pathname === '/';
     }
+    if (path.includes('?category=')) {
+      const linkCategory = new URLSearchParams(path.split('?')[1]).get('category');
+      const currentCategory = new URLSearchParams(location.search).get('category');
+      return location.pathname === '/properties' && linkCategory === currentCategory;
+    }
     if (path.includes('?')) {
       return location.pathname + location.search === path;
     }
@@ -67,8 +72,10 @@ const Header = () => {
             <NavLink to="/about" isActive={isActive('/about')}>About</NavLink>
             {categories.map((cat) => {
               const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
+              const catActive = location.pathname === '/properties' &&
+                new URLSearchParams(location.search).get('category') === cat.title;
               return (
-                <NavLink key={cat._id} to={href} isActive={isActive(href)}>
+                <NavLink key={cat._id} to={href} isActive={catActive}>
                   {cat.title}
                 </NavLink>
               );
@@ -104,8 +111,10 @@ const Header = () => {
               <MobileNavLink to="/about" isActive={isActive('/about')} onClick={() => setIsMenuOpen(false)}>About</MobileNavLink>
               {categories.map((cat) => {
                 const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
+                const catActive = location.pathname === '/properties' &&
+                  new URLSearchParams(location.search).get('category') === cat.title;
                 return (
-                  <MobileNavLink key={cat._id} to={href} isActive={isActive(href)} onClick={() => setIsMenuOpen(false)}>
+                  <MobileNavLink key={cat._id} to={href} isActive={catActive} onClick={() => setIsMenuOpen(false)}>
                     {cat.title}
                   </MobileNavLink>
                 );

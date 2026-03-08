@@ -86,8 +86,8 @@ const HeroCarousel = () => {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60"></div>
               </div>
 
-              {/* Content */}
-              <div className="relative h-full container-custom flex flex-col justify-center items-center text-center z-10 pt-20">
+              {/* Content — title + subtitle only, no SearchBar here */}
+              <div className="relative h-full container-custom flex flex-col justify-center items-center text-center z-10 pt-20 pb-40">
                 <div className="mb-6 animate-fade-in-up">
                   <span className="px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-full shadow-xl">
                     Exclusive Listing
@@ -97,20 +97,22 @@ const HeroCarousel = () => {
                   {slide.title}
                 </h1>
                 {slide.subtitle && (
-                  <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl animate-fade-in-up delay-100 font-bold uppercase tracking-widest drop-shadow-lg">
+                  <p className="text-lg md:text-xl text-white/80 max-w-2xl animate-fade-in-up delay-100 font-bold uppercase tracking-widest drop-shadow-lg">
                     {slide.subtitle}
                   </p>
                 )}
-
-                {/* Search Bar Container */}
-                <div className="w-full max-w-4xl animate-fade-in-up delay-200">
-                  <SearchBar />
-                </div>
               </div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
+
+      {/* SearchBar outside Swiper — persists across slide changes */}
+      <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center px-4">
+        <div className="w-full max-w-4xl animate-fade-in-up delay-200">
+          <SearchBar />
+        </div>
+      </div>
     </section>
   );
 };

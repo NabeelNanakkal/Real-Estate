@@ -1,82 +1,78 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiMapPin, FiHome, FiDollarSign } from 'react-icons/fi';
+import { useSelector } from 'react-redux';
+import { FiSearch, FiHome } from 'react-icons/fi';
 import { PROPERTY_TYPES } from '../../constants/propertyTypes';
-import { LISTING_TYPE } from '../../constants/statuses';
+import { useAuth } from '../../context/AuthContext';
 
 const SearchBar = () => {
   const navigate = useNavigate();
+  const { list: categories } = useSelector(s => s.category);
+  const { activeCurrency } = useAuth();
+
   const [searchData, setSearchData] = useState({
     location: '',
     propertyType: '',
-    listingType: LISTING_TYPE.SALE,
+    category: '',
     minPrice: '',
-    maxPrice: ''
   });
+
+  // Set default selected category to first one when categories load
+  React.useEffect(() => {
+    if (categories.length > 0 && !searchData.category) {
+      setSearchData(prev => ({ ...prev, category: categories[0].title }));
+    }
+  }, [categories]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    
-    if (searchData.location) params.append('location', searchData.location);
+    if (searchData.category) params.append('category', searchData.category);
+    if (searchData.location) params.append('city', searchData.location);
     if (searchData.propertyType) params.append('propertyType', searchData.propertyType);
-    if (searchData.listingType) params.append('type', searchData.listingType);
     if (searchData.minPrice) params.append('minPrice', searchData.minPrice);
-    if (searchData.maxPrice) params.append('maxPrice', searchData.maxPrice);
-
     navigate(`/properties?${params.toString()}`);
   };
 
   return (
     <div className="glass rounded-2xl p-6 animate-slide-up">
-      {/* Tabs */}
-      <div className="flex space-x-4 mb-6">
-        <button
-          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.SALE })}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === LISTING_TYPE.SALE
-              ? 'bg-white text-primary shadow-lg'
-              : 'text-white hover:bg-white/20'
-          }`}
-        >
-          Buy
-        </button>
-        <button
-          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.RENT })}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === LISTING_TYPE.RENT
-              ? 'bg-white text-primary shadow-lg'
-              : 'text-white hover:bg-white/20'
-          }`}
-        >
-          Rent
-        </button>
-        <button
-          onClick={() => setSearchData({ ...searchData, listingType: LISTING_TYPE.COMMERCIAL })}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            searchData.listingType === LISTING_TYPE.COMMERCIAL
-              ? 'bg-white text-primary shadow-lg'
-              : 'text-white hover:bg-white/20'
-          }`}
-        >
-          Commercial
-        </button>
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {categories.length > 0 ? (
+          categories.map((cat) => (
+            <button
+              key={cat._id}
+              type="button"
+              onClick={() => setSearchData({ ...searchData, category: cat.title })}
+              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                searchData.category === cat.title
+                  ? 'bg-white text-primary shadow-lg'
+                  : 'text-white hover:bg-white/20'
+              }`}
+            >
+              {cat.title}
+            </button>
+          ))
+        ) : (
+          ['Buy', 'Rent', 'Commercial'].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setSearchData({ ...searchData, category: tab })}
+              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                searchData.category === tab
+                  ? 'bg-white text-primary shadow-lg'
+                  : 'text-white hover:bg-white/20'
+              }`}
+            >
+              {tab}
+            </button>
+          ))
+        )}
       </div>
 
       {/* Search Form */}
-      <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Location */}
-        <div className="relative">
-          <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Location"
-            value={searchData.location}
-            onChange={(e) => setSearchData({ ...searchData, location: e.target.value })}
-            className="w-full pl-10 pr-4 py-3 rounded-lg bg-white border-0 focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
+      <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Property Type */}
         <div className="relative">
           <FiHome className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -92,21 +88,19 @@ const SearchBar = () => {
           </select>
         </div>
 
-        {/* Price Range */}
+        {/* Min Price */}
         <div className="relative">
-          <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <select
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 font-semibold text-sm">
+            {activeCurrency?.symbol || '$'}
+          </span>
+          <input
+            type="number"
+            min="0"
             value={searchData.minPrice}
             onChange={(e) => setSearchData({ ...searchData, minPrice: e.target.value })}
-            className="w-full pl-10 pr-4 py-3 rounded-lg bg-white border-0 focus:ring-2 focus:ring-primary appearance-none"
-          >
-            <option value="">Min Price</option>
-            <option value="50000">$50,000</option>
-            <option value="100000">$100,000</option>
-            <option value="200000">$200,000</option>
-            <option value="500000">$500,000</option>
-            <option value="1000000">$1,000,000</option>
-          </select>
+            className="w-full pl-14 pr-4 py-3 rounded-lg bg-white border-0 focus:ring-2 focus:ring-primary"
+            placeholder="Min Price"
+          />
         </div>
 
         {/* Search Button */}
