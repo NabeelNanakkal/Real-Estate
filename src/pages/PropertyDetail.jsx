@@ -22,6 +22,19 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const shareRef = React.useRef(null);
+
+  // Close share popup when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (shareRef.current && !shareRef.current.contains(e.target)) {
+        setShareOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
   const [inquiryForm, setInquiryForm] = useState({
     name: '',
     email: '',
@@ -126,6 +139,23 @@ const PropertyDetail = () => {
     }
   };
 
+  const propertyUrl = `${window.location.origin}/property/${id}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(propertyUrl).then(() => {
+      toast.success('Link copied to clipboard!');
+      setShareOpen(false);
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
+
+  const handleWhatsApp = () => {
+    const msg = encodeURIComponent(`Check out this property: ${propertyUrl}`);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    setShareOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* Breadcrumbs & Title Section */}
@@ -157,9 +187,39 @@ const PropertyDetail = () => {
                 {formatPrice(property.price)}
               </div>
               <div className="flex items-center md:justify-end space-x-3">
-                <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-semibold">
-                  <FiShare2 /> <span>Share</span>
-                </button>
+                <div className="relative" ref={shareRef}>
+                  <button
+                    onClick={() => setShareOpen(!shareOpen)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-semibold"
+                  >
+                    <FiShare2 /> <span>Share</span>
+                  </button>
+
+                  {/* Share Dropdown */}
+                  {shareOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in-up">
+                      <button
+                        onClick={handleCopyLink}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 10h6a2 2 0 002-2v-8a2 2 0 00-2-2h-6a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        </span>
+                        Copy Link
+                      </button>
+                      <div className="h-px bg-gray-100" />
+                      <button
+                        onClick={handleWhatsApp}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-green-50 transition-colors"
+                      >
+                        <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.101.546 4.073 1.5 5.787L0 24l6.389-1.674A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.844 0-3.576-.476-5.079-1.31l-.364-.214-3.792.993 1.012-3.698-.234-.38A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        </span>
+                        WhatsApp
+                      </button>
+                    </div>
+                  )}
+                </div>
 
               </div>
             </div>
@@ -371,13 +431,7 @@ const PropertyDetail = () => {
             <div className="bg-white rounded-3xl shadow-xl border border-gray-50 p-8 sticky top-28">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Agent</h3>
               
-              <div className="flex items-center space-x-4 mb-8 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                <img src={getImageUrl(property.agent?.image)} alt={property.agent?.name} className="w-20 h-20 rounded-2xl object-cover shadow-lg shadow-gray-200" />
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900 leading-tight">{property.agent?.name || 'Authorized Agent'}</h4>
-                  <p className="text-sm text-gray-500 mb-1 font-medium italic">{property.agent?.company || 'Premium Realtor'}</p>
-                </div>
-              </div>
+
 
               <div className="grid grid-cols-1 gap-4 mb-8">
                 <a href={`tel:${property.agent.phone}`} className="flex items-center justify-center space-x-2 py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-0.5">

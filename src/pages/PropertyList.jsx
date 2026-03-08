@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiFilter, FiMapPin, FiHome, FiMaximize2, FiGrid, FiList, FiChevronRight } from 'react-icons/fi';
 import { FaBed, FaBath } from 'react-icons/fa';
 import { fetchProperties } from '../store/slices/propertySlice';
+import { fetchCategories } from '../store/slices/categorySlice';
 import EmptyState from '../components/common/EmptyState';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatDate } from '../utils/formatters';
@@ -15,23 +16,39 @@ const PropertyList = () => {
   const { formatPrice } = useAuth();
   const dispatch = useDispatch();
   const { list: properties, loading, error, pagination } = useSelector(s => s.property);
+  const { list: categoriesList } = useSelector(s => s.category);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid');
 
   // Filter state
   const [filters, setFilters] = useState({
-    type: searchParams.get('type') || '',
+    listingType: searchParams.get('listingType') || '',
     bedrooms: searchParams.get('bedrooms') || '',
     city: searchParams.get('city') || '',
+    category: searchParams.get('category') || '',
     minPrice: '',
     maxPrice: '',
     propertyType: []
   });
 
+  useEffect(() => {
+    const params = Object.fromEntries(searchParams.entries());
+    setFilters(prev => ({
+      ...prev,
+      listingType: params.listingType || '',
+      bedrooms: params.bedrooms || '',
+      city: params.city || '',
+      category: params.category || '',
+      propertyType: params.propertyType ? params.propertyType.split(',') : []
+    }));
+  }, [searchParams]);
+
   const buildParams = useCallback((page = 1) => ({
-    type: filters.type || undefined,
+    listingType: filters.listingType || undefined,
     bedrooms: filters.bedrooms || undefined,
     city: filters.city || undefined,
+    category: filters.category || undefined,
     minPrice: filters.minPrice || undefined,
     maxPrice: filters.maxPrice || undefined,
     propertyType: filters.propertyType.length > 0 ? filters.propertyType.join(',') : undefined,
@@ -41,7 +58,24 @@ const PropertyList = () => {
 
   useEffect(() => {
     dispatch(fetchProperties(buildParams(1)));
-  }, [filters.type, filters.bedrooms, filters.city, dispatch]); // eslint-disable-line
+  }, [filters.listingType, filters.bedrooms, filters.city, filters.category, filters.propertyType, dispatch]); // eslint-disable-line
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  const handleReset = () => {
+    setFilters({
+      listingType: '',
+      bedrooms: '',
+      city: '',
+      category: '',
+      minPrice: '',
+      maxPrice: '',
+      propertyType: []
+    });
+    navigate('/properties');
+  };
 
   const handleApplyFilters = () => {
     dispatch(fetchProperties(buildParams(1)));
@@ -75,10 +109,10 @@ const PropertyList = () => {
         </div>
         <div className="container-custom relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Find Your Dream {searchParams.get('type') === LISTING_TYPE.RENT ? 'Rental' : 'Home'}
+            Find Your Dream {searchParams.get('category') || (searchParams.get('listingType') === LISTING_TYPE.RENT ? 'Rental' : 'Home')}
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Discover a wide range of properties {searchParams.get('type') === LISTING_TYPE.RENT ? 'for rent' : 'for sale'} in the most desirable locations.
+            Discover a wide range of properties {searchParams.get('category') ? `in the ${searchParams.get('category')} category` : (searchParams.get('listingType') === LISTING_TYPE.RENT ? 'for rent' : 'for sale')} in the most desirable locations.
           </p>
         </div>
       </div>
@@ -93,7 +127,10 @@ const PropertyList = () => {
                   <FiFilter className="mr-2 text-primary" />
                   Filters
                 </h3>
-                <button className="text-sm text-gray-500 hover:text-primary transition-colors">
+                <button 
+                  onClick={handleReset}
+                  className="text-sm text-gray-500 hover:text-primary transition-colors"
+                >
                   Reset
                 </button>
               </div>
@@ -134,9 +171,24 @@ const PropertyList = () => {
                 </div>
               </div>
 
+              {/* Category */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Category</label>
+                <select 
+                  value={filters.category}
+                  onChange={(e) => setFilters({...filters, category: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm appearance-none bg-white font-medium"
+                >
+                  <option value="">All Categories</option>
+                  {categoriesList.map(cat => (
+                    <option key={cat._id} value={cat.title}>{cat.title}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Bedrooms */}
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Bedrooms</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Min Bedrooms</label>
                 <div className="flex flex-wrap gap-2">
                   {BEDROOM_OPTIONS.map((num) => (
                     <button 

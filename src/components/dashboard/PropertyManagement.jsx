@@ -6,7 +6,7 @@ import {
   FiCheckSquare, FiImage, FiFilter, FiChevronDown, FiAlertCircle 
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-import { propertyService } from '../../services/api';
+import { propertyService, categoryService } from '../../services/api';
 import toast from 'react-hot-toast';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import { AMENITIES } from '../../constants/amenities';
@@ -21,6 +21,7 @@ const PropertyManagement = () => {
   // --- STATE ---
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL);
@@ -32,7 +33,7 @@ const PropertyManagement = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('add'); // 'add' | 'edit'
   const [formData, setFormData] = useState({
-    _id: null, title: '', description: '', propertyType: '', listingType: LISTING_TYPE.SALE, price: '',
+    _id: null, title: '', description: '', propertyType: '', category: '', listingType: LISTING_TYPE.SALE, price: '',
     location: '', city: '', bedrooms: '', bathrooms: '', area: '',
     parking: '', amenities: [], images: [], nearby: []
   });
@@ -58,6 +59,13 @@ const PropertyManagement = () => {
     };
 
     fetchProperties();
+  }, []);
+
+  // Fetch categories for the dropdown
+  useEffect(() => {
+    categoryService.getCategories()
+      .then(({ data }) => { if (data.success) setCategories(data.data); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -98,14 +106,23 @@ const PropertyManagement = () => {
 
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
 
+  const determineListingType = (categoryTitle) => {
+    if (!categoryTitle) return LISTING_TYPE.SALE;
+    const title = categoryTitle.toLowerCase();
+    if (title.includes('rent')) return 'rent';
+    if (title.includes('commercial')) return 'commercial';
+    return 'sale';
+  };
+
   // Drawer Handlers
   const handleOpenAdd = () => {
     setDrawerMode('add');
     setFormData({
-      _id: null, 
+      _id: null,
       listingId: `EH-${Math.floor(1000 + Math.random() * 9000)}`,
       title: '', description: '', propertyType: DEFAULT_PROPERTY_TYPE, listingType: LISTING_TYPE.SALE, price: '',
-      location: '', city: '', bedrooms: '', bathrooms: '', area: '', 
+      location: '', city: '', category: '',
+      bedrooms: '', bathrooms: '', area: '', 
       parking: '', amenities: [], images: [], nearby: []
     });
     setPreviews([]);
@@ -121,7 +138,8 @@ const PropertyManagement = () => {
       title: property.title,
       description: property.description || '',
       propertyType: property.propertyType || property.type || '',
-      listingType: property.listingType || LISTING_TYPE.SALE,
+      listingType: property.listingType || (property.category?.title ? determineListingType(property.category.title) : LISTING_TYPE.SALE),
+      category: property.category?._id || property.category || '',
       price: property.price,
       location: property.location,
       city: property.city || '',
@@ -134,7 +152,7 @@ const PropertyManagement = () => {
       nearby: property.nearby || []
     });
     setPreviews(property.images || []);
-    setImageFiles([]); // Clear new files when opening edit
+    setImageFiles([]);
     setIsDrawerOpen(true);
   };
 
@@ -145,7 +163,8 @@ const PropertyManagement = () => {
       title: property.title,
       description: property.description || '',
       propertyType: property.propertyType || property.type || '',
-      listingType: property.listingType || 'sale',
+      listingType: property.listingType || (property.category?.title ? determineListingType(property.category.title) : LISTING_TYPE.SALE),
+      category: property.category?._id || property.category || '',
       price: property.price,
       location: property.location,
       city: property.city || '',
@@ -507,6 +526,33 @@ const PropertyManagement = () => {
                         <option key={t.value} value={t.value}>{t.label}</option>
                       ))}
                     </select>
+                  </div>
+                  {/* Category */}
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Category <span className="text-red-400">*</span></label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const cat = categories.find(c => c._id === val);
+                        let lt = formData.listingType;
+                        if (cat) {
+                          lt = determineListingType(cat.title);
+                        }
+                        setFormData({...formData, category: val, listingType: lt});
+                      }}
+                      disabled={drawerMode === 'view'}
+                      required
+                      className={`w-full bg-white px-6 py-4 rounded-2xl outline-none border border-gray-100 shadow-sm transition-all font-bold text-sm appearance-none ${drawerMode !== 'view' ? 'focus:border-primary focus:ring-4 focus:ring-primary/5 cursor-pointer' : 'cursor-default'}`}
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map(cat => (
+                        <option key={cat._id} value={cat._id}>{cat.title}</option>
+                      ))}
+                    </select>
+                    {categories.length === 0 && drawerMode !== 'view' && (
+                      <p className="text-[10px] text-amber-500 font-bold ml-2 mt-1">⚠ No categories yet. Add them from Categories section.</p>
+                    )}
                   </div>
                 </div>
 

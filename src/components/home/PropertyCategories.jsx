@@ -30,7 +30,7 @@ const PropertyCategories = () => {
       title: 'For Rent',
       count: '300+',
       description: 'Rental Properties',
-      link: '/properties?type=rent',
+      link: '/properties?listingType=rent',
       gradient: 'from-orange-500 to-red-500'
     },
     {
@@ -48,6 +48,16 @@ const PropertyCategories = () => {
   }, [dispatch]);
 
   const categories = list.length > 0 ? list : defaultCategories;
+
+  // Determine grid columns based on count (max 4 per row)
+  const getColsClass = (count) => {
+    if (count === 1) return 'grid-cols-1';
+    if (count === 2) return 'grid-cols-1 md:grid-cols-2';
+    if (count === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+    return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+  };
+
+  const colsClass = getColsClass(Math.min(categories.length, 4));
 
   if (loading) {
     return (
@@ -73,7 +83,7 @@ const PropertyCategories = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className={`grid ${colsClass} gap-6`}>
           {categories.map((category, index) => {
             const Icon = CATEGORY_ICON_MAP[category.iconKey] || CATEGORY_ICON_MAP.FiLayers;
             return (

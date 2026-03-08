@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiSearch, FiMenu, FiX, FiUser } from 'react-icons/fi';
+import { FiMenu, FiX } from 'react-icons/fi';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../context/AuthContext';
 import { getImageUrl } from '../../utils/imageUtils';
+import { fetchCategories } from '../../store/slices/categorySlice';
 
 const Header = () => {
   const { user, publicProfile } = useAuth();
   const activeProfile = user || publicProfile;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { list: categories } = useSelector(s => s.category);
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
@@ -57,10 +65,14 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/" isActive={isActive('/')}>Home</NavLink>
             <NavLink to="/about" isActive={isActive('/about')}>About</NavLink>
-            <NavLink to="/properties?type=sale" isActive={isActive('/properties?type=sale')}>Buy</NavLink>
-            <NavLink to="/properties?type=rent" isActive={isActive('/properties?type=rent')}>Rent</NavLink>
-            <NavLink to="/properties?type=commercial" isActive={isActive('/properties?type=commercial')}>Commercial</NavLink>
-
+            {categories.map((cat) => {
+              const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
+              return (
+                <NavLink key={cat._id} to={href} isActive={isActive(href)}>
+                  {cat.title}
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* Right Side Actions */}
@@ -90,10 +102,14 @@ const Header = () => {
             <nav className="flex flex-col space-y-4">
               <MobileNavLink to="/" isActive={isActive('/')} onClick={() => setIsMenuOpen(false)}>Home</MobileNavLink>
               <MobileNavLink to="/about" isActive={isActive('/about')} onClick={() => setIsMenuOpen(false)}>About</MobileNavLink>
-              <MobileNavLink to="/properties?type=sale" isActive={isActive('/properties?type=sale')} onClick={() => setIsMenuOpen(false)}>Buy</MobileNavLink>
-              <MobileNavLink to="/properties?type=rent" isActive={isActive('/properties?type=rent')} onClick={() => setIsMenuOpen(false)}>Rent</MobileNavLink>
-              <MobileNavLink to="/properties?type=commercial" isActive={isActive('/properties?type=commercial')} onClick={() => setIsMenuOpen(false)}>Commercial</MobileNavLink>
-
+              {categories.map((cat) => {
+                const href = cat.link || `/properties?category=${encodeURIComponent(cat.title)}`;
+                return (
+                  <MobileNavLink key={cat._id} to={href} isActive={isActive(href)} onClick={() => setIsMenuOpen(false)}>
+                    {cat.title}
+                  </MobileNavLink>
+                );
+              })}
               <Link to="/contact" className="btn-primary inline-block text-center" onClick={() => setIsMenuOpen(false)}>
                 Contact Us
               </Link>

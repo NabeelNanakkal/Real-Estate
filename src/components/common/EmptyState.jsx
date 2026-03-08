@@ -4,7 +4,7 @@ import Lottie from 'lottie-react';
 const EmptyState = ({ 
   title = "No properties found", 
   message = "We couldn't find any properties matching your current filters. Try adjusting your search criteria.",
-  animationUrl = "https://assets9.lottiefiles.com/packages/lf20_ghfp9m.json" // Default high-quality empty search animation
+  animationUrl = "https://lottie.host/f88d4474-0f32-473d-9860-af608d0b28a8/mP1iR4Wd4u.json" // Stable empty search animation
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in">

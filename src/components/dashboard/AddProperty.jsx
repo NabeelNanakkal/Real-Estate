@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiHome, FiMapPin, FiCheckCircle, FiCamera,
   FiArrowLeft, FiTrash2, FiSave, FiPlus, FiLayers
 } from 'react-icons/fi';
-import { propertyService } from '../../services/api';
+import { propertyService, categoryService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const TYPE_CONFIG = {
@@ -78,9 +79,11 @@ const ZONING_OPTIONS = [
 const AddProperty = () => {
   const navigate = useNavigate();
   const { activeCurrency } = useAuth();
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '', description: '', propertyType: '',
     listingType: 'sale', price: '', location: '', city: '',
+    category: '',
     bedrooms: '', bathrooms: '', area: '', parking: '',
     floor: '', totalFloors: '', plotSize: '', houseFloors: '',
     furnished: false, roadAccess: false, zoning: '',
@@ -92,6 +95,12 @@ const AddProperty = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
 
+  useEffect(() => {
+    categoryService.getCategories()
+      .then(({ data }) => { if (data.success) setCategories(data.data); })
+      .catch(() => {});
+  }, []);
+
   const selectedType = formData.propertyType ? TYPE_CONFIG[formData.propertyType] : null;
 
   const handleTypeSelect = (typeVal) => {
@@ -100,7 +109,19 @@ const AddProperty = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'category') {
+      const cat = categories.find(c => c._id === value);
+      let newListingType = formData.listingType;
+      if (cat) {
+        const title = cat.title.toLowerCase();
+        if (title.includes('rent')) newListingType = 'rent';
+        else if (title.includes('commercial')) newListingType = 'commercial';
+        else if (title.includes('sell') || title.includes('sale') || title.includes('buy')) newListingType = 'sale';
+      }
+      setFormData(prev => ({ ...prev, [name]: value, listingType: newListingType }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleToggle = (field) => {
@@ -271,6 +292,25 @@ const AddProperty = () => {
                     placeholder="0"
                     className="w-full bg-slate-50 border-none px-6 py-3.5 rounded-xl font-bold text-slate-900 focus:ring-4 focus:ring-primary/5 transition-all text-[13px]"
                   />
+                </div>
+
+                {/* Category selector */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">
+                    Category <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    name="category" value={formData.category} onChange={handleChange} required
+                    className="w-full bg-slate-50 border-none px-6 py-3.5 rounded-xl font-bold text-slate-900 focus:ring-4 focus:ring-primary/5 transition-all text-[13px] appearance-none"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat._id}>{cat.title}</option>
+                    ))}
+                  </select>
+                  {categories.length === 0 && (
+                    <p className="text-[10px] text-amber-500 font-bold ml-3">⚠ No categories found. Add categories first from the dashboard.</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

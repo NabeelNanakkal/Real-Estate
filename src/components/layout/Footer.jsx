@@ -88,26 +88,30 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
+                <Link to="/" className="text-gray-400 hover:text-primary transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
                 <Link to="/about" className="text-gray-400 hover:text-primary transition-colors">
                   About Us
                 </Link>
               </li>
+              {categories.map((cat) => (
+                <li key={cat._id}>
+                  <Link
+                    to={cat.link || `/properties?category=${encodeURIComponent(cat.title)}`}
+                    className="text-gray-400 hover:text-primary transition-colors"
+                  >
+                    {cat.title}
+                  </Link>
+                </li>
+              ))}
               <li>
-                <Link to="/properties?type=sale" className="text-gray-400 hover:text-primary transition-colors">
-                  Buy Property
+                <Link to="/contact" className="text-gray-400 hover:text-primary transition-colors">
+                  Contact Us
                 </Link>
               </li>
-              <li>
-                <Link to="/properties?type=rent" className="text-gray-400 hover:text-primary transition-colors">
-                  Rent Property
-                </Link>
-              </li>
-              <li>
-                <Link to="/properties?type=commercial" className="text-gray-400 hover:text-primary transition-colors">
-                  Commercial
-                </Link>
-              </li>
-
             </ul>
           </div>
 
@@ -171,9 +175,12 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 mt-8 pt-8 flex justify-center">
+        <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="text-gray-400 text-sm">
             © {new Date().getFullYear()} {activeProfile?.company || 'EstateHub'}. All rights reserved.
+          </p>
+          <p className="text-gray-500 text-sm">
+            Developed by <span className="text-primary font-semibold">GQ Real Estate</span>
           </p>
         </div>
       </div>

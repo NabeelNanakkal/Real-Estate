@@ -1,3 +1,4 @@
+// About Page Component
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiCheck, FiUsers, FiTarget, FiAward } from 'react-icons/fi';
@@ -34,12 +35,12 @@ const About = () => {
       {/* Hero Section */}
       <div className="relative pt-32 pb-20 bg-gray-900 overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src={content?.hero?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600"} 
-            alt="Office" 
-            className="w-full h-full object-cover opacity-20"
+          <img
+            src={content?.hero?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600"}
+            alt="Office"
+            className="w-full h-full object-cover opacity-40"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/50 to-gray-900/70"></div>
         </div>
         <div className="container-custom relative z-10 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in-up">

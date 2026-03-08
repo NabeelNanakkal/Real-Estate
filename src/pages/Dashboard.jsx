@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FiHome, FiList, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiHome, FiList, FiMail, FiInfo, FiSettings, FiLogOut, FiBriefcase, FiLayers, FiMessageSquare, FiMessageCircle, FiChevronLeft, FiChevronRight, FiImage, FiBarChart2 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageUtils';
 import DashboardHome from '../components/dashboard/DashboardHome';
@@ -14,6 +14,8 @@ import PartnerManagement from '../components/dashboard/PartnerManagement';
 import CategoryManagement from '../components/dashboard/CategoryManagement';
 import ContactManagement from '../components/dashboard/ContactManagement';
 import TestimonialManagement from '../components/dashboard/TestimonialManagement';
+import BannerManagement from '../components/dashboard/BannerManagement';
+import StatsManagement from '../components/dashboard/StatsManagement';
 import LogoutConfirmModal from '../components/dashboard/LogoutConfirmModal';
 
 const Dashboard = () => {
@@ -65,12 +67,14 @@ const Dashboard = () => {
   const menuItems = [
     { path: '/dashboard', icon: FiHome, label: 'Overview', exact: true },
     { path: '/dashboard/properties', icon: FiList, label: 'Properties' },
+    { path: '/dashboard/banners', icon: FiImage, label: 'Banners' },
     { path: '/dashboard/inquiries', icon: FiMail, label: 'Inquiries' },
     { path: '/dashboard/about', icon: FiInfo, label: 'About Page' },
     { path: '/dashboard/partners', icon: FiBriefcase, label: 'Partners' },
     { path: '/dashboard/categories', icon: FiLayers, label: 'Categories' },
     { path: '/dashboard/contact',       icon: FiMessageSquare,  label: 'Contact Page' },
     { path: '/dashboard/testimonials',  icon: FiMessageCircle,  label: 'Testimonials' },
+    { path: '/dashboard/stats',         icon: FiBarChart2,      label: 'Stats' },
   ];
 
   const isActive = (path, exact = false) => {
@@ -220,6 +224,8 @@ const Dashboard = () => {
                     <Route path="/categories" element={<CategoryManagement />} />
                     <Route path="/contact"       element={<ContactManagement />} />
                     <Route path="/testimonials" element={<TestimonialManagement />} />
+                    <Route path="/banners" element={<BannerManagement />} />
+                    <Route path="/stats" element={<StatsManagement />} />
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </div>

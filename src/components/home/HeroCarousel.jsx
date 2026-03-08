@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules';
 import SearchBar from './SearchBar';
-import { Link } from 'react-router-dom';
-import { propertyService } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { bannerService } from '../../services/api';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -12,33 +10,45 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+const FALLBACK_SLIDES = [
+  {
+    _id: 'fallback-1',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80',
+    title: 'Find Your Dream Home',
+    subtitle: 'Explore premium properties across the finest locations',
+  },
+  {
+    _id: 'fallback-2',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80',
+    title: 'Luxury Living Awaits',
+    subtitle: 'Discover exclusive listings curated just for you',
+  },
+];
+
 const HeroCarousel = () => {
-  const { formatPrice } = useAuth();
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHeroAssets = async () => {
+    const fetchBanners = async () => {
       try {
         setLoading(true);
-        const { data } = await propertyService.getProperties();
+        const { data } = await bannerService.getActive();
         if (data.success && data.data.length > 0) {
-          const heroSlides = data.data.slice(0, 3).map(p => ({
-            _id: p._id,
-            image: p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80',
-            title: p.title,
-            subtitle: `${p.city} • ${p.propertyType.charAt(0).toUpperCase() + p.propertyType.slice(1)} • ${formatPrice(p.price)}`
-          }));
-          setSlides(heroSlides);
+          setSlides(data.data);
+        } else {
+          // No banners configured — use nice fallback
+          setSlides(FALLBACK_SLIDES);
         }
       } catch (err) {
-        console.error('Error fetching hero slides:', err);
+        console.error('Error fetching banners:', err);
+        setSlides(FALLBACK_SLIDES);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHeroAssets();
+    fetchBanners();
   }, []);
 
   if (loading) return (
@@ -68,14 +78,14 @@ const HeroCarousel = () => {
           <SwiperSlide key={slide._id}>
             <div className="relative h-full w-full">
               {/* Background Image */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-100 group-hover:scale-110"
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-100"
                 style={{ backgroundImage: `url(${slide.image})` }}
               >
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60"></div>
               </div>
- 
+
               {/* Content */}
               <div className="relative h-full container-custom flex flex-col justify-center items-center text-center z-10 pt-20">
                 <div className="mb-6 animate-fade-in-up">
@@ -86,10 +96,12 @@ const HeroCarousel = () => {
                 <h1 className="text-5xl md:text-7xl font-black text-white mb-6 animate-fade-in-up tracking-tighter drop-shadow-2xl">
                   {slide.title}
                 </h1>
-                <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl animate-fade-in-up delay-100 font-bold uppercase tracking-widest drop-shadow-lg">
-                  {slide.subtitle}
-                </p>
-                
+                {slide.subtitle && (
+                  <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl animate-fade-in-up delay-100 font-bold uppercase tracking-widest drop-shadow-lg">
+                    {slide.subtitle}
+                  </p>
+                )}
+
                 {/* Search Bar Container */}
                 <div className="w-full max-w-4xl animate-fade-in-up delay-200">
                   <SearchBar />

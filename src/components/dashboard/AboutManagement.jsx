@@ -167,6 +167,12 @@ const AboutManagement = () => {
     return { ...c, stats: s };
   });
 
+  const addValue    = () => setContent((c) => ({ ...c, values: [...c.values, { title: '', description: '', iconKey: 'FiAward' }] }));
+  const updateValue = (i, field, val) => setContent((c) => {
+    const v = [...c.values]; v[i] = { ...v[i], [field]: val };
+    return { ...c, values: v };
+  });
+
   const addTeam = () => {
     setMemberModal({ isOpen: true, mode: 'add', index: null, name: '', role: '', file: null, preview: '' });
   };
@@ -238,6 +244,7 @@ const AboutManagement = () => {
 
     if (type === 'point') newContent.mission = { ...newContent.mission, points: newContent.mission.points.filter((_, i) => i !== index) };
     else if (type === 'stat') newContent.stats = newContent.stats.filter((_, i) => i !== index);
+    else if (type === 'value') newContent.values = newContent.values.filter((_, i) => i !== index);
     else if (type === 'team') {
       newContent.team = newContent.team.filter((_, i) => i !== index);
       newTeamFiles = newTeamFiles.filter((_, i) => i !== index);
@@ -425,6 +432,67 @@ const AboutManagement = () => {
           </div>
         </div>
 
+        {/* ── Why Choose Us / Values Section ── */}
+        <div className="bg-white p-7 md:p-8 rounded-[40px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] relative">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center shadow-inner">
+                <FiAward className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">Why Choose Us</h2>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Values shown on the About page</p>
+              </div>
+            </div>
+            <button onClick={addValue} className="group flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:shadow-xl transition-all">
+              <FiPlus className="text-xs group-hover:rotate-90 transition-transform duration-300" />
+              <span>Add Value</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {content.values.map((val, index) => (
+              <div key={index} className="group relative bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-primary/20 transition-all">
+                <button onClick={() => handleDeleteClick('value', index)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-white border border-slate-100 text-rose-400 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <FiTrash2 className="w-3.5 h-3.5" />
+                </button>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Title</label>
+                    <input type="text" value={val.title}
+                      onChange={(e) => updateValue(index, 'title', e.target.value)}
+                      placeholder="e.g. Expert Guidance"
+                      className="w-full px-4 py-2.5 bg-white border-none rounded-xl font-bold text-slate-900 text-[13px] shadow-sm focus:ring-4 focus:ring-primary/5" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Icon</label>
+                    <select value={val.iconKey} onChange={(e) => updateValue(index, 'iconKey', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white border-none rounded-xl font-bold text-slate-900 text-[13px] shadow-sm focus:ring-4 focus:ring-primary/5 cursor-pointer">
+                      <option value="FiAward">🏆 Award</option>
+                      <option value="FiUsers">👥 Users / Team</option>
+                      <option value="FiTarget">🎯 Target / Goal</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Description</label>
+                    <input type="text" value={val.description}
+                      onChange={(e) => updateValue(index, 'description', e.target.value)}
+                      placeholder="Brief description..."
+                      className="w-full px-4 py-2.5 bg-white border-none rounded-xl font-bold text-slate-900 text-[13px] shadow-sm focus:ring-4 focus:ring-primary/5" />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {content.values.length === 0 && (
+              <div className="py-12 text-center text-slate-300">
+                <FiAward className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p className="font-black text-[10px] uppercase tracking-[0.2em]">No values added yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ── Team Section ── */}
         <div className="bg-white p-7 md:p-8 rounded-[40px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] relative">
           <div className="flex items-center justify-between mb-10">
@@ -505,7 +573,7 @@ const AboutManagement = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, type: '', index: null })}
         onConfirm={confirmDelete}
-        title={`Remove ${deleteModal.type === 'point' ? 'Goal' : deleteModal.type === 'stat' ? 'Metric' : 'Member'}?`}
+        title={`Remove ${deleteModal.type === 'point' ? 'Goal' : deleteModal.type === 'stat' ? 'Metric' : deleteModal.type === 'value' ? 'Value' : 'Member'}?`}
         message="Are you sure you want to remove this item? You'll need to save changes to make it permanent."
       />
 

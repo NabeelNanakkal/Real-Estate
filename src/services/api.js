@@ -86,6 +86,21 @@ export const testimonialService = {
   deleteTestimonial:  (id)          => api.delete(`/testimonials/${id}`),
 };
 
+export const bannerService = {
+  getAll:    ()           => api.get('/banners'),
+  getActive: ()           => api.get('/banners/active'),
+  create:    (data)       => api.post('/banners', data),
+  update:    (id, data)   => api.put(`/banners/${id}`, data),
+  delete:    (id)         => api.delete(`/banners/${id}`),
+};
+
+export const statsService = {
+  getStats:    ()           => api.get('/stats'),
+  addStat:     (data)       => api.post('/stats', data),
+  updateStat:  (id, data)   => api.put(`/stats/${id}`, data),
+  deleteStat:  (id)         => api.delete(`/stats/${id}`),
+};
+
 export const zohoService = {
   subscribe: (webhookUrl) => api.post('/auth/zoho/subscribe', { webhookUrl }),
 };
