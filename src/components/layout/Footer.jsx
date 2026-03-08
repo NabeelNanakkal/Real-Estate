@@ -180,7 +180,7 @@ const Footer = () => {
             © {new Date().getFullYear()} {activeProfile?.company || 'EstateHub'}. All rights reserved.
           </p>
           <p className="text-gray-500 text-sm">
-            Developed by <span className="text-primary font-semibold">GQ Real Estate</span>
+            Designed By <span className="text-primary font-semibold">A&S Management</span>
           </p>
         </div>
       </div>
