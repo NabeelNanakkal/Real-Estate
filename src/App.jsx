@@ -13,7 +13,6 @@ const PropertyList   = lazy(() => import('./pages/PropertyList'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const Dashboard      = lazy(() => import('./pages/Dashboard'));
 const Login          = lazy(() => import('./pages/Auth/Login'));
-const Register       = lazy(() => import('./pages/Auth/Register'));
 const Contact        = lazy(() => import('./pages/Contact'));
 const About          = lazy(() => import('./pages/About'));
 
@@ -54,8 +53,7 @@ function App() {
               element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
             />
 
-            <Route path="/login"    element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path={ROUTES.LOGIN} element={<Login />} />
 
             <Route element={<PublicLayout />}>
               <Route path={ROUTES.HOME}       element={<Home />} />

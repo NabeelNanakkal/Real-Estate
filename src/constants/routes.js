@@ -4,7 +4,6 @@ export const ROUTES = {
   PROPERTY:   '/properties/:id',
   ABOUT:      '/about',
   CONTACT:    '/contact',
-  LOGIN:      '/login',
-  REGISTER:   '/register',
+  LOGIN:      '/auth/login',
   DASHBOARD:  '/dashboard',
 };
