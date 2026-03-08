@@ -64,6 +64,8 @@ function App() {
               <Route path="/property/:id"     element={<PropertyDetail />} />
               <Route path={ROUTES.CONTACT}    element={<Contact />} />
             </Route>
+
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
         </Suspense>
       </Router>
